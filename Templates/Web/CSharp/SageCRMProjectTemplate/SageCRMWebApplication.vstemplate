@@ -1,0 +1,31 @@
+<VSTemplate Version="2.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+    <TemplateData>
+        <Name>Sage CRM Web Site</Name>
+        <Description>Sage CRM Web Site</Description>
+        <Icon Package="{39c9c826-8ef8-4079-8c95-428f5b1c323f}" ID="4701"/>
+        <ProjectType>Web</ProjectType>
+        <ProjectSubType>CSharp</ProjectSubType>
+        <SortOrder>1000</SortOrder>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>SageCRMWebSite</DefaultName>
+        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>            
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+        <EnableEditOfLocationField>true</EnableEditOfLocationField>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+        <LocationField>Hidden</LocationField>
+    </TemplateData>
+    <TemplateContent>
+        <Project File="SageCRMWebApplication.webproj" ReplaceParameters="false">
+            <Folder Name="App_Data">
+            </Folder>
+            <ProjectItem OpenInEditor="true" OpenOrder="10">Default.aspx</ProjectItem>
+            <ProjectItem>Default.aspx.cs</ProjectItem>
+            <ProjectItem OpenInEditor="true" OpenOrder="10">Default_7.aspx</ProjectItem>
+            <ProjectItem>Default_7.aspx.cs</ProjectItem>
+            <ProjectItem ReplaceParameters="false" TargetFileName="crmclient.js">crmclient.js</ProjectItem>
+            <ProjectItem ReplaceParameters="false" TargetFileName="eware.css">eware.css</ProjectItem>
+            <ProjectItem ReplaceParameters="false" TargetFileName="color1.css">color1.css</ProjectItem>
+        </Project>
+    </TemplateContent>
+</VSTemplate>

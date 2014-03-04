@@ -1,0 +1,43 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>SageCRMWebForm.aspx</DefaultName>
+    <Name>Sage CRM Web Form</Name>
+    <Description>Sage CRM Web Form</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>Web</ProjectSubType>
+    <SortOrder>10</SortOrder>    
+    <Icon Package="{39c9c826-8ef8-4079-8c95-428f5b1c323f}" ID="4533"/>
+    <TemplateID>SageCRMWebForm</TemplateID>
+    <TemplateGroupID>Web</TemplateGroupID>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System.Web</Assembly>
+      </Reference>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+      <Reference>
+        <Assembly>System.Data</Assembly>
+      </Reference>
+      <Reference>
+        <Assembly>System.Drawing</Assembly>
+      </Reference>
+      <Reference>
+        <Assembly>System.Xml</Assembly>
+      </Reference>
+    </References>
+    <CustomParameters>
+      <CustomParameter Name="$ParentExtension$" Value=".aspx"/>
+      <CustomParameter Name="$ChildExtension$" Value=".cs"/>
+    </CustomParameters>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.$fileinputextension$" >SageCRMWebForm.aspx</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.$fileinputextension$.cs" SubType="ASPXCodeBehind" >SageCRMWebForm.aspx.cs</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.$fileinputextension$.designer.cs" >SageCRMWebForm.aspx.designer.cs</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Microsoft.VisualStudio.Web.Application</Assembly>
+    <FullClassName>Microsoft.VisualStudio.Web.Application.WATemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{33BADF02-B353-49CF-8134-BAA399E6D611}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SageCRM</RootNamespace>
+    <AssemblyName>SageCRM</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>SageCRM.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ButtonPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ButtonPropEditor.Designer.cs">
+      <DependentUpon>ButtonPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CommObject.cs" />
+    <Compile Include="converter.cs" />
+    <Compile Include="buttonpropeditorclass.cs" />
+    <Compile Include="ButtonDesigner.cs" />
+    <Compile Include="SageCRMEntryItem.cs" />
+    <Compile Include="DataSourceDesigner.cs" />
+    <Compile Include="DataSourcePropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DataSourcePropEditor.Designer.cs">
+      <DependentUpon>DataSourcePropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="datasourcepropeditorclass.cs" />
+    <Compile Include="SageCRMBaseEntryBlock.cs" />
+    <Compile Include="SageCRMBaseFilterBlock.cs" />
+    <Compile Include="SageCRMBaseListBlock.cs" />
+    <Compile Include="SageCRMPortalEntryBlock.cs" />
+    <Compile Include="SageCRMPortalFilterBlock.cs" />
+    <Compile Include="SageCRMPortalListBlock.cs" />
+    <Compile Include="TopContentDesigner.cs" />
+    <Compile Include="topcontenteditorclass.cs" />
+    <Compile Include="TopContentPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TopContentPropEditor.Designer.cs">
+      <DependentUpon>TopContentPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EntryPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EntryPropEditor.Designer.cs">
+      <DependentUpon>EntryPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="crmEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="crmEditor.Designer.cs">
+      <DependentUpon>crmEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EntryDesigner.cs" />
+    <Compile Include="entryeditorclass.cs" />
+    <Compile Include="entrypropeditorclass.cs" />
+    <Compile Include="FilterDesigner.cs" />
+    <Compile Include="filtereditorclass.cs" />
+    <Compile Include="FilterPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FilterPropEditor.Designer.cs">
+      <DependentUpon>FilterPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="filterpropeditorclass.cs" />
+    <Compile Include="listeditorclass.cs" />
+    <Compile Include="entryBlockPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="entryBlockPicker.Designer.cs">
+      <DependentUpon>entryBlockPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="listBlockPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="listBlockPicker.Designer.cs">
+      <DependentUpon>listBlockPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ListDesigner.cs" />
+    <Compile Include="listEditor.cs" />
+    <Compile Include="ListPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ListPropEditor.Designer.cs">
+      <DependentUpon>ListPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="listpropeditorclass.cs" />
+    <Compile Include="SageCRMDataViewReader.cs" />
+    <Compile Include="SageCRMFilterBlock.cs" />
+    <Compile Include="SageCRMBaseClass.cs" />
+    <Compile Include="SageCRMButton.cs" />
+    <Compile Include="SageCRMButtonChange.cs" />
+    <Compile Include="SageCRMConnection.cs" />
+    <Compile Include="SageCRMCustom.cs" />
+    <Compile Include="SageCRMDataSource.cs" />
+    <Compile Include="SageCRMEntryBlock.cs" />
+    <Compile Include="SageCRMListBlock.cs" />
+    <Compile Include="SageCRMTabGroup.cs" />
+    <Compile Include="SageCRMTopContent.cs" />
+    <Compile Include="SageCRMurlLabel.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaveCRMButtonSave.cs" />
+    <Compile Include="TabDesigner.cs" />
+    <Compile Include="tabeditorclass.cs" />
+    <Compile Include="TabPropEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TabPropEditor.Designer.cs">
+      <DependentUpon>TabPropEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="tabpropeditorclass.cs" />
+    <Compile Include="topcontentpropeditorclass.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SageCRMConnection.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ButtonPropEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ButtonPropEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataSourcePropEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DataSourcePropEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TopContentPropEditor.resx">
+      <DependentUpon>TopContentPropEditor.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EntryPropEditor.resx">
+      <DependentUpon>EntryPropEditor.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="crmEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>crmEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="entryBlockPicker.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>entryBlockPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FilterPropEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FilterPropEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="listBlockPicker.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>listBlockPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ListPropEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ListPropEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMFilterBlock.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMCustom.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMDataSource.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMEntryBlock.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMListBlock.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMTabGroup.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMTopContent.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SageCRMurlLabel.bmp">
+      <CustomToolNamespace>SageCRM.AspNet</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabPropEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TabPropEditor.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SageCRM.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

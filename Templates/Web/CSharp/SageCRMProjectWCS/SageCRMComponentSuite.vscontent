@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSContent xmlns="http://schemas.microsoft.com/developer/vscontent/2005">
+  <Content>
+    <FileName>SageCRMProjectTemplate.zip</FileName>
+    <DisplayName>Sage CRM Web Site</DisplayName>
+    <Description>Sage CRM Web Site</Description>
+    <FileContentType>VSTemplate</FileContentType>
+    <ContentVersion>1.0</ContentVersion>
+    <Attributes>
+      <Attribute name="ProjectType" value="Visual Web Developer"/>
+      <Attribute name="ProjectSubType" value="Visual C#"/>
+      <Attribute name="TemplateType" value="Project"/>      
+    </Attributes>
+  </Content>
+  <Content>
+    <FileName>SageCRMFormattedWebForm.zip</FileName>
+    <DisplayName>Sage CRM Formatted Web Form</DisplayName>
+    <Description>Sage CRM Formatted Web Form</Description>
+    <FileContentType>VSTemplate</FileContentType>
+    <ContentVersion>1.0</ContentVersion>
+    <Attributes>
+      <Attribute name="ProjectType" value="Visual Web Developer"/>
+      <Attribute name="ProjectSubType" value="Visual C#"/>
+      <Attribute name="TemplateType" value="Item"/>
+    </Attributes>
+  </Content>
+  <Content>
+    <FileName>SageCRMFormattedWebForm7.zip</FileName>
+    <DisplayName>Sage CRM Formatted Web Form 7</DisplayName>
+    <Description>Sage CRM Formatted Web Form 7</Description>
+    <FileContentType>VSTemplate</FileContentType>
+    <ContentVersion>1.0</ContentVersion>
+    <Attributes>
+      <Attribute name="ProjectType" value="Visual Web Developer"/>
+      <Attribute name="ProjectSubType" value="Visual C#"/>
+      <Attribute name="TemplateType" value="Item"/>
+    </Attributes>
+  </Content>
+  <Content>
+    <FileName>SageCRMWebForm.zip</FileName>
+    <DisplayName>Sage CRM Web Form</DisplayName>
+    <Description>Sage CRM Web Form</Description>
+    <FileContentType>VSTemplate</FileContentType>
+    <ContentVersion>1.0</ContentVersion>
+    <Attributes>
+      <Attribute name="ProjectType" value="Visual Web Developer"/>
+      <Attribute name="ProjectSubType" value="Visual C#"/>
+      <Attribute name="TemplateType" value="Item"/>
+    </Attributes>
+  </Content>
+  <Content>
+    <FileName>SageCRMWebForm7.zip</FileName>
+    <DisplayName>Sage CRM Web Form 7</DisplayName>
+    <Description>Sage CRM Web Form 7</Description>
+    <FileContentType>VSTemplate</FileContentType>
+    <ContentVersion>1.0</ContentVersion>
+    <Attributes>
+      <Attribute name="ProjectType" value="Visual Web Developer"/>
+      <Attribute name="ProjectSubType" value="Visual C#"/>
+      <Attribute name="TemplateType" value="Item"/>
+    </Attributes>
+  </Content>  
+</VSContent>

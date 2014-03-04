@@ -1,0 +1,49 @@
+description=Advanced Customization Wizard
+requires=selfservice,expansion
+directory=MainEntityWizard
+multipleinstalls=y
+errorhandling=strict
+NeedsExpansion=Y
+
+params:
+text Name=Entity Name,required=true,maxlength=22,"OnChange=RecordAsComponent.value=value.substr(0,10)+'_Component'";
+text Name=Entity Column Prefix,NewLine=false,required=true,maxlength=6
+text Name=RecordAsComponent,Caption=Tag with Component Name,NewLine=false,maxlength=20
+
+checkbox Name=Add to todo?,Caption=Add to My CRM
+checkbox Name=Add to find?,Caption=Add to Find,NewLine=false
+checkbox Name=Add to channels?,Caption=Add to Team CRM,NewLine=false
+
+checkbox Name=Has companies?,Caption=Has Companies
+checkbox Name=Owned by companies?,Caption=Owned by Companies,newline=false
+checkbox Name=WSDL,Caption=Allow Web Service Access,newline=false
+
+checkbox Name=HasAccounts,Caption=Has Accounts
+checkbox Name=OwnedbyAccounts,Caption=Owned by Accounts,newline=false
+
+checkbox Name=Has people?,Caption=Has People
+checkbox Name=Owned by people?,Caption=Owned by People,newline=false
+
+checkbox Name=Has opportunities?,Caption=Has Opportunities
+checkbox Name=Owned by opportunities?,Caption=Owned by Opportunities,newline=false
+
+checkbox Name=Has leads?,Caption=Has Leads
+checkbox Name=Owned by leads?,Caption=Owned by Leads,newline=false
+
+checkbox Name=Has cases?,Caption=Has Cases
+checkbox Name=Owned by cases?,Caption=Owned by Cases,newline=false
+
+checkbox Name=Has communications?,Caption=Has Communications
+checkbox Name=Has library?,Caption=Has Library,newline=false
+
+checkbox Name=OwnedByOrders,Caption=Owned by Orders
+checkbox Name=OwnedByQuotes,Caption=Owned by Quotes,newline=false
+
+checkbox Name=Workflow?,Caption=Workflow
+checkbox Name=Has Workflow Progress?,Caption=Has Workflow Progress,newline=false
+
+checkbox Name=Deduplication?,Caption=Deduplication
+select Name=OfflineOptions,Caption=Offline Options,Family=Bord_SoloOptions,Default=1,NewLine=false,Size=1,"OnChange=if ((this.value == 1) || (this.value == 5) || (this.value == 6)) document.EntryForm.OfflineDateOptions.disabled = false; else document.EntryForm.OfflineDateOptions.disabled = true;"
+
+checkbox Name=DotNet,Caption=For Dot Net
+select Name=OfflineDateOptions,Caption=Solo Date Filtering,Family=Bord_SoloDateOptions,Default=0,NewLine=false,Size=1

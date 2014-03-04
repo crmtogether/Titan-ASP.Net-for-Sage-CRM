@@ -1,0 +1,91 @@
+BODY {
+	BACKGROUND: #F4f6f9
+}
+.H1 {
+	FONT-SIZE: 14px; FONT-WEIGHT: BOLD; COLOR: #0066A1; FONT-FAMILY: Arial; TEXT-TRANSFORM: uppercase;
+}
+.H2 {
+	FONT-SIZE: 11px; FONT-WEIGHT: BOLD; COLOR: #0066A1; FONT-FAMILY: Arial; TEXT-DECORATION: underline 
+}
+.EDIT{
+background:#F7F7F7 ;
+font-weight:bold;
+color:#003B71;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size:11px;
+}
+.CHARTTITLE {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: navy; FONT-FAMILY: Arial; TEXT-ALIGN: center
+}
+.VIEWBOX{
+background:#F7F7F7 ;
+font-weight: bold;
+color:#003B71;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size:11px;
+}
+.VIEWBOXCAPTION{
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 11px;
+color:#003B71;
+}
+.CONTENT{
+background:#F7F7F7 ;
+color:#003B71;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size:11px;
+}
+.BUTTON {
+	FONT-SIZE: 11px; BACKGROUND: #0066A1; COLOR: #ffffff; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.GRIDHEAD {
+	FONT-WEIGHT: bold; BACKGROUND: #6795c3; COLOR: white
+}
+.ROW1 {
+	BACKGROUND: #dedee7
+}
+.ROW2 {
+	BACKGROUND: #f7f7f7
+}
+.ROW3 {
+	BACKGROUND: #cceecc
+}
+.ROW4 {
+	BACKGROUND: #aabbaa
+}
+.ERROR {
+	FONT-SIZE: 11px; BACKGROUND: white; COLOR: red; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.headertext {
+	FONT-WEIGHT: 700; FONT-SIZE: 10px; TEXT-TRANSFORM: uppercase; COLOR: #868689; FONT-FAMILY: Arial
+}
+.centretext {
+	FONT-SIZE: 11px; COLOR: #868689; FONT-FAMILY: Arial
+}
+.NavigText {
+	FONT-WEIGHT: 700; FONT-SIZE: 10px; TEXT-TRANSFORM: uppercase; COLOR: #464649; FONT-FAMILY: Arial; TEXT-DECORATION: none
+}
+.TextBold {
+	FONT-WEIGHT: Bold; FONT-SIZE: 11px; TEXT-TRANSFORM: uppercase; COLOR: #0066A1; FONT-FAMILY: Arial; 
+}
+.ul {
+	FONT-WEIGHT: Bold; FONT-SIZE: 11px; WIDTH:100%; text-decoration:none; COLOR: #ffffff; BACKGROUND: #f7f7f7;FONT-FAMILY: Arial; padding:0.2em 0.6em;
+
+}
+.ul:hover {background-color:#ff3300}
+li {display:inline}
+A:link {
+	COLOR: #464649; BORDER-BOTTOM: none; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #464649; BORDER-BOTTOM: none; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #464649; BORDER-BOTTOM: none; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #464649; BORDER-BOTTOM: none; TEXT-DECORATION: none
+}
+.boldcentre {
+	FONT-SIZE: 11px; COLOR: #333333; FONT-FAMILY: Arial
+}

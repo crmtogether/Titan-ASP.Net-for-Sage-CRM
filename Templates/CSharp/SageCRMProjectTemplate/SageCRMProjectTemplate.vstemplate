@@ -1,0 +1,39 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>Sage CRM Project</Name>
+    <Description>Sage CRM Project</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>SageCRMProject</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <SupportsLanguageDropdown>false</SupportsLanguageDropdown>    
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>__TemplateIcon.ico</Icon>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="SageCRMProject1.csproj" File="SageCRMProject1.csproj" ReplaceParameters="true">
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="false" TargetFileName="crmclient.js">crmclient.js</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="eware.css">eware.css</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="color1.css">color1.css</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm.aspx">SageCRMFormattedWebForm.aspx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm.aspx.cs">SageCRMFormattedWebForm.aspx.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm.aspx.designer.cs">SageCRMFormattedWebForm.aspx.designer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm.aspx">SageCRMWebForm.aspx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm.aspx.cs">SageCRMWebForm.aspx.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm.aspx.designer.cs">SageCRMWebForm.aspx.designer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm7.aspx">SageCRMFormattedWebForm7.aspx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm7.aspx.cs">SageCRMFormattedWebForm7.aspx.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMFormattedWebForm7.aspx.designer.cs">SageCRMFormattedWebForm7.aspx.designer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm7.aspx">SageCRMWebForm7.aspx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm7.aspx.cs">SageCRMWebForm7.aspx.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="SageCRMWebForm7.aspx.designer.cs">SageCRMWebForm7.aspx.designer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.config</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>
