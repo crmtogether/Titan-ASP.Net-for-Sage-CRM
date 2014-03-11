@@ -13,5 +13,7 @@ The bridge files are in the CustomPages folder
 The seup wizard is INNO setup
 
 
+The license that Titan is released under is Apache license 2.0
 
+http://www.apache.org/licenses/LICENSE-2.0.html
 
