@@ -44,7 +44,7 @@ if (localip.indexOf(remoteip)!=0)
   var iEntryType_CheckBox = 45;
   var iEntryType_AdvSearchSelect = 56;
     
-  eWare = Server.CreateObject("eWare.eWareSelfService");
+  CRM = eWare = Server.CreateObject("eWare.eWareSelfService");
   var eMsg=eWare.Init(
       Request.Querystring,
       Request.Form,
@@ -125,5 +125,13 @@ if (localip.indexOf(remoteip)!=0)
 	var re2 = /\+/g;
     MStr=MStr.replace(re2,"%2B");
     return MStr;
+  }
+  function _xlog(sender, msg)
+  {
+        return;
+      var _logr=CRM.CreateRecord("ctportallog");
+      _logr("ctpo_description")=sender;
+      _logr("ctpo_details")=msg;
+      _logr.SaveChanges();
   }
 %>

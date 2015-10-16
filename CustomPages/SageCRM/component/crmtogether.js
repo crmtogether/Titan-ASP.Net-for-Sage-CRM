@@ -622,10 +622,22 @@ function getList(ListBlock,EntityName,EntityWhere,BlockTitle)
 function attachTagEvent(tagName, event, functionPtr)
 {
   var tagList=document.getElementsByTagName(tagName);
+    cs_debug("tagList="+tagList);
   for(i=0;i<tagList.length;i++)
   {
     var obj=tagList[i];
-    obj.attachEvent(event, functionPtr);
+
+	if (typeof obj.addEventListener === 'function') {
+	      cs_debug("addEventListener:");
+		// Check for addEventListener first, since IE9/10 have both,
+		// but you should use the standard over the deprecated IE-specific one
+		obj.addEventListener(event, functionPtr);
+	} else if (typeof obj.attachEvent === 'function') {
+	      cs_debug("attachEvent:");
+		obj.attachEvent(event, functionPtr);
+	}	
+	//http://stackoverflow.com/questions/20180046/attachevent-doesnt-work-in-ie-8-0
+    //obj.attachEvent(event, functionPtr);
   }
 }
 function URL(path)
@@ -671,7 +683,7 @@ function _getSELECTChannel()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 //set this true to show alert messages
-var debugMode=false;
+var debugMode=true;
 //this is the load function that is called. 
 //enter your customisations here
 function CRMTogetherOnload()
@@ -725,16 +737,31 @@ function CRMTogetherOnload()
 
 }
 
+function _xlog(msg)
+{
+  try{
+    console.log(msg);
+  }catch(e)
+  {
+  }
+}
+
 function cs_debug(msg)
 {
   if (debugMode)
-    alert(msg);
+  {
+    _xlog(msg);
+    //alert(msg);
+  }
 }
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+window.onload=CRMTogetherOnload;
+/*
+--browser updates mean this was not working all of the time
 if(document.all)
 {
   // Microsoft IE (W3 compliant)
@@ -745,3 +772,4 @@ else
   // Firefox
   window.addEventListener("onload", CRMTogetherOnload, true);
 }
+*/

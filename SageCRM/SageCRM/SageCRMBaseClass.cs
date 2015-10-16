@@ -8,7 +8,6 @@ using System.Security.Permissions;
 using System.IO;
 using System.Net;
 using System.Configuration;
-using license;
 using System.Net.NetworkInformation;
 
 [assembly: TagPrefix("SageCRM.AspNet", "SageCRM")]
@@ -31,9 +30,10 @@ namespace SageCRM.AspNet
         protected string FSageCRMConnectionID;
         protected bool FUpdator;
 
-        private string FVersion = "2.9.5.0";
+        public bool NoPostData = false;//we use this to prevent unnecessary post data being submited to the asp pages-needed for file large uploads
 
-        private bool TrialBuild = true;
+        private string FVersion="3.2.0";
+
         public bool showTrialML = false;//READ THIS do not set this to true here..it is set in the component itself
         //declaring the event
         public event BeforeRenderingEventHandler BeforeRendering;
@@ -247,7 +247,7 @@ namespace SageCRM.AspNet
         public string crmEncode(string val)
         {
             string res = val;
-            res = res.Replace("%", "%%25");//clever fix..ahem
+            res = res.Replace("%", "%%25");//clever 
             /*
             | %7C
             \ %5C
@@ -265,9 +265,9 @@ namespace SageCRM.AspNet
             & %26
             $ %24
              * */
-            res = res.Replace("}", "%7D");//clever fix..ahem
-            res = res.Replace("{", "%7B");//clever fix..ahem
-            res = res.Replace("#", "%23");//clever fix..ahem
+            res = res.Replace("}", "%7D");//clever 
+            res = res.Replace("{", "%7B");//clever 
+            res = res.Replace("#", "%23");//clever 
 
             //res = HttpUtility.UrlEncode(res);
             //res = HttpUtility.HtmlEncode(val);
@@ -311,23 +311,32 @@ namespace SageCRM.AspNet
 
         public string GetVisitorInfo(string FieldName)
         {
-            return SageCRMConnection != null 
+			this.NoPostData = true;
+            string res= SageCRMConnection != null 
                 ? _GetHTML("getVisitorInfo.asp", "&FieldName=" + FieldName, "", false, false) 
                 : "No SageCRMConnection set (GetVisitorInfo Method)";
+            this.NoPostData = false;
+            return res;
         }
 
         public string SetVisitorInfo(string FieldName, string FieldValue)
         {
-            return SageCRMConnection != null 
+            this.NoPostData = true;
+            string res= SageCRMConnection != null 
                 ? _GetHTML("setVisitorInfo.asp", "&FieldName=" + FieldName + "&FieldValue=" + FieldValue, "", false, false) 
                 : "No SageCRMConnection set (SetVisitorInfo Method)";
+            this.NoPostData = false;
+            return res;
         }
 
         public string GetContextInfo(string Context, string FieldName)
         {
-            return SageCRMConnection != null 
+			this.NoPostData = true;            
+            string res= SageCRMConnection != null 
                 ? _GetHTML("/CustomPages/SageCRM/component/GetContextInfo.asp", "&Context=" + Context + "&FieldName=" + FieldName, "", false, false) 
                 : "No SageCRMConnection set (GetContextInfo Method)";
+            this.NoPostData = false;
+            return res;
         }
 
         //takes a url string and parses out the parts up to the crm install name
@@ -431,7 +440,8 @@ namespace SageCRM.AspNet
             var encoding = new UTF8Encoding();
 //            ASCIIEncoding encoding = new ASCIIEncoding();
 
-            if (PostData == null)
+            //NoPostData-added april 2015 
+            if ((PostData == null) || (this.NoPostData))
             {
                 PostData = "";
             }
@@ -681,87 +691,9 @@ namespace SageCRM.AspNet
 
             return result.ToString();
         }
+        //update 20th March 14 - removed license code
         public string _setTrialHTML(string renderHtml){
-            string serverName="";
-            DateTime today=System.DateTime.Today;
-            //DateTime exp_date = new DateTime(2013, 1, 1, 12, 0, 0);
-            //NOTE new build required soon so!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            DateTime exp_date = new DateTime(2099, 1, 1, 12, 0, 0);
-            try
-            {
-                // need to update this as could be used as back door to free license
-                if (ConfigurationManager.AppSettings["SageCRMDistributionLicense"] != null)
-                    return renderHtml;
-
-                //new dev license
-                if ((ConfigurationManager.AppSettings["CRMTogetherDevLicense"] != null) && (today < exp_date))
-                    return renderHtml;
-
-                if (!DesignMode)
-                {
-                    serverName = HttpContext.Current.Request.ServerVariables.Get("SERVER_NAME");
-                    //check for license
-                    /*..web config
-                     * 
-                     <appSettings>
-                       <add key="SageCRMSuiteLicense" value="mylicense" />
-                     </appSettings>
-                     * 
-                     * */
-                    //new license system using mac address
-                    if (ConfigurationManager.AppSettings["SageCRMSuiteLicenseMac"] != null)
-                    {
-                        foreach (NetworkInterface nif in NetworkInterface.GetAllNetworkInterfaces())
-                        {
-                            string macAddress = nif.GetPhysicalAddress().ToString();
-                            if (macAddress != string.Empty)
-                            {
-                                string sageCRMSuiteLicenseMac = ConfigurationManager.AppSettings["SageCRMSuiteLicenseMac"].ToString();
-                                string sageCRMSuiteLicenseDecodedMac = converter.Decrypt(sageCRMSuiteLicenseMac);
-                                if (macAddress == sageCRMSuiteLicenseDecodedMac)
-                                {
-                                     showTrialML = false;
-                                     TrialBuild = false;
-                                }
-                            }
-                        }
-                    } 
-                    else  //try old license system
-                        if (ConfigurationManager.AppSettings["SageCRMSuiteLicense"] != null)
-                        {
-                            string sageCRMSuiteLicense = ConfigurationManager.AppSettings["SageCRMSuiteLicense"].ToString();
-                            string sageCRMSuiteLicenseDecoded = converter.Decrypt(sageCRMSuiteLicense);
-                            string[] sageCRMSuiteLicenseArray = sageCRMSuiteLicenseDecoded.Split(',');
-                            //loop through the servernames in this license
-                            foreach (string licensedServer in sageCRMSuiteLicenseArray)
-                            {
-                                if (licensedServer.ToLower().IndexOf(serverName.ToLower(), StringComparison.Ordinal) == 0)
-                                {
-                                    showTrialML = false;
-                                    TrialBuild = false;
-                                }
-                            }
-                        }
-                }
-                if (!showTrialML)
-                    return renderHtml;
-                if ((!DesignMode) && (HttpContext.Current != null))  //ie running 
-                {
-                    if ((TrialBuild) && (serverName.IndexOf("localhost", StringComparison.Ordinal) == -1))
-                    {
-                       // if (!(this is SageCRMDataSource))
-                        if (!objectMethod)
-                            renderHtml = renderHtml + "<div id=\"TrialVersion_" + DateTime.Now.ToString("dd/MM/yyyy h:MM tt") + 
-                                "\" style=\"background-color:#94ab37;height:25px;width:400px\">Titan ASP.Net for Sage CRM Trial Version</div>";
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                //do nothing
-            }
             return renderHtml;
-
         }
 
     }

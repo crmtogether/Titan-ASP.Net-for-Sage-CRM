@@ -88,7 +88,6 @@
       <DependentUpon>ButtonPropEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="CommObject.cs" />
-    <Compile Include="converter.cs" />
     <Compile Include="buttonpropeditorclass.cs" />
     <Compile Include="ButtonDesigner.cs" />
     <Compile Include="SageCRMEntryItem.cs" />

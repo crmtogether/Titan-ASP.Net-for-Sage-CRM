@@ -10,7 +10,7 @@ try
 {
   var crmtabgroup=Request.QueryString('crmtabgroup');
   //Response.Write(Request.QueryString);
-  if (getCRMVersion().indexOf("7.2")==0)
+  if ((getCRMVersion().indexOf("7.2")==0)||(getCRMVersion().indexOf("7.3")==0)||(getCRMVersion().indexOf("7.4")==0))
   {                        
     var sHTML = "";    
     try{
@@ -30,6 +30,17 @@ try
   debugcrm("tabgroup", e.description);
   logerror(e);
 }
+
+var _vsql="select * from custom_sysparams where parm_name='version'";
+var _vq=CRM.CreateQueryObj(_vsql);
+_vq.SelectSQL();
+var _version="";
+if (!_vq.eof)
+{
+  _version=_vq("parm_value");
+}
+if (_version=="7.2b")
+{
 %>
 <script>
 ///needed to fix up screens from 7.2b due to changes made to the CRM api
@@ -44,3 +55,9 @@ function fix72b()
 }
 window.onload=fix72b;
 </script>
+
+<%
+
+}
+
+%>

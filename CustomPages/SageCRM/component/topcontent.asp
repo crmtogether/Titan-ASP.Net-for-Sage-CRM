@@ -17,7 +17,7 @@ try{
   EntityWhere_valstr_arr=EntityWhere_valstr.split(",");
   EntityWhere=EntityWhere_arr[0]+"="+EntityWhere_valstr_arr[0];
  
-  if (getCRMVersion()=="7.2")
+  if ((getCRMVersion()=="7.2")||(getCRMVersion()=="7.3")||(getCRMVersion()=="7.4"))
   {
      Response.Write(CRM.GetCustomEntityTopFrame(EntityName));
      Response.End();  

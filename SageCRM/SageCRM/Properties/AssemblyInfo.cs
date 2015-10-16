@@ -14,7 +14,7 @@ using System;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("CRM Together")]
 [assembly: AssemblyProduct("CRM Togethers Titan ASP.Net Suite for Sage CRM")]
-[assembly: AssemblyCopyright("Copyright © CRM Together 2008-2012")]
+[assembly: AssemblyCopyright("Copyright © CRM Together 2008-2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -35,5 +35,5 @@ using System;
 //
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
-[assembly: AssemblyVersion("2.9.5")]
-[assembly: AssemblyFileVersion("2.9.5")]
+[assembly: AssemblyVersion("3.2.0")]
+[assembly: AssemblyFileVersion("3.2.0")]

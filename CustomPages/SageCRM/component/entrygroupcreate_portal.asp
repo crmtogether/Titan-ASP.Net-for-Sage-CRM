@@ -13,15 +13,14 @@ try
   var EntityWhere=new String(Request.QueryString("EntityWhere"));
   var BlockTitle=new String(Request.QueryString("BlockTitle"));
   var AfterSavePage=new String(Request.QueryString("AfterSavePage"));
-  
-  var WorkflowName=new String(Request.QueryString("WorkflowName"));
+   var WorkflowName=new String(Request.QueryString("WorkflowName"));
   var WFState=new String(Request.QueryString("WFState"));
-  var Evalcode=new String(Request.Form("Evalcode"));  
-  if (!Defined(WorkflowName))
-  {
-    WorkflowName="";
-  }      
   
+  var Evalcode=new String(Request.Form("Evalcode"));  
+
+    _xlog("asp create qs", Request.QueryString);
+    _xlog("asp create qs", Request.Form);
+
   block = eWare.GetBlock(EntryBlock);
   
   var record =  eWare.CreateRecord(EntityName);  
@@ -37,11 +36,19 @@ try
   block.DisplayForm=false;
   block.DisplayButton(Button_Default) = false;
   block.ArgObj=record;
+  
+    if (Defined(Evalcode))
+    {
+      Evalcode=unescape(Evalcode);
+      _xlog("Evalcode", Evalcode);
+      eval(Evalcode);  
+    }
+
   if (WorkflowName!="")
   {  
     record.SetWorkflowInfo(WorkflowName,WFState);     
   }
-  
+
   if ((eWare.Mode==Save) && (block.Validate())){
     block.Execute(); ///save the changes
     //go to our new page..a summary page perhaps
@@ -58,6 +65,7 @@ try
   emmode=eWare.Mode+1;
   if ((eWare.Mode==2) && (block.Validate()==false))
     emmode=emmode-1;
+ 
   Response.Write(block.Execute());
 
   //as we hide the form we need to output these values

@@ -34,6 +34,17 @@ namespace SageCRM.AspNet
 
         protected bool lastUpdateResult=false;
 
+        private string pr_NoTLS = "N";
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue(false)]
+        [Description("Specifies whether the insert or update runs any table level scripts")]
+        public virtual bool NoTLS
+        {
+            get { return pr_NoTLS == "Y"; }
+            set { pr_NoTLS = value ? "Y" : "N"; }
+        }
+
         [Browsable(false)]
         public bool isPortal
         {
@@ -300,7 +311,7 @@ namespace SageCRM.AspNet
         {
             if (null == view)
             {
-                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top);
+                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS);
             }
             return view;
         }
@@ -327,6 +338,7 @@ namespace SageCRM.AspNet
         protected string FSelectSQL;
         protected string FTop;
         protected SageCRMCustom FSageCRMCustom;
+        protected bool FNoTLS = false;
 
         protected string idField = "";
         public DataView dv;//used for the data reader
@@ -335,6 +347,7 @@ namespace SageCRM.AspNet
         public DataSet dataset;
         public DataSet objData;
         public DataSet objSchema;
+
 
         public bool isPortal
         {
@@ -353,7 +366,7 @@ namespace SageCRM.AspNet
         }
 
         public SageCRMDataSourceView(IDataSource owner, string TableName, string WhereClause,
-            SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop)
+            SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop, bool pNoTLS)
             : base(owner, DefaultViewName)
         {
             FSageCRMConnection = SageCRMConnectionObj;
@@ -361,6 +374,7 @@ namespace SageCRM.AspNet
             FWhereClause = WhereClause;
             FSelectSQL = SelectSQL;
             FTop = iTop;
+            FNoTLS = pNoTLS;
             FSageCRMCustom = new SageCRMCustom(); //we use this to make our request
             FSageCRMCustom.SageCRMConnection = FSageCRMConnection;
         }
@@ -605,7 +619,7 @@ namespace SageCRM.AspNet
                         {
                             colName = data.Columns[j].ColumnName.ToString();
                             string valStr = objData.Tables[0].Rows[i][colName].ToString();
-                            //if (dataValues != "")  //MR this line meant that if the first column was null the colummn order would be wrong
+                            //if (dataValues != "")  //this line meant that if the first column was null the colummn order would be wrong
                             if (j>0)
                                 dataValues += "[stopitnoe]";
                             if (data.Columns[j].DataType == typeof(int))
@@ -812,7 +826,12 @@ namespace SageCRM.AspNet
                 builder.AppendFormat("</" + KeyName + ">");
             }
             builder.AppendFormat("</data>");
-            string RequestResult = FSageCRMCustom._GetHTML(this.getInsertRecord_file(), "&TableName=" + this.FTableName, builder.ToString(), false);
+            string _NoTLS = "";
+            if (FNoTLS)
+            {
+                _NoTLS = "&NoTLS=Y";
+            }
+            string RequestResult = FSageCRMCustom._GetHTML(this.getInsertRecord_file(), "&TableName=" + this.FTableName + _NoTLS, builder.ToString(), false);
             this.RecordID = RequestResult;
             //in this case RequestResult is the id of the new record
             return 1;
@@ -883,8 +902,6 @@ namespace SageCRM.AspNet
                 else
                 {
                     KeyValue = SecurityElement.Escape(Entry.Value.ToString());
-                    //MR removed on 11/10/2011 as not in executeinsert function
-                    //KeyValue=KeyValue.Replace("%","%%");
                 }
                 builder.AppendFormat(KeyValue);
                 builder.AppendFormat("</" + KeyName + ">");
@@ -910,8 +927,12 @@ namespace SageCRM.AspNet
             {
                 whereClause = this.FWhereClause;
             }
-
-            string RequestResult = FSageCRMCustom._GetHTML(this.getUpdateRecord_file(), "&TableName=" + this.FTableName + "&WhereClause=" + whereClause, builder.ToString(), false);
+            string _NoTLS = "";
+            if (FNoTLS)
+            {
+                _NoTLS = "&NoTLS=Y";
+            }
+            string RequestResult = FSageCRMCustom._GetHTML(this.getUpdateRecord_file(), "&TableName=" + this.FTableName + "&WhereClause=" + whereClause + _NoTLS, builder.ToString(), false);
             //string RequestResult = FSageCRMCustom._GetHTML(this.getUpdateRecord_file(), "&TableName=" + this.FTableName + "&WhereClause=" + whereClause, "<data><pers_lastname>testthis</pers_lastname></data>", false);
 
             // Alex: changed to Int32.TryParse to resolve AC-59: Sync issue on our live system

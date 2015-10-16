@@ -74,11 +74,19 @@ try
   //Removed as broken in new 
   //eWare.SetContext("New");
   Response.Write(Holder.Execute(record));
+  var _version=new String(getCRMVersion());
   try{
-    Response.Write(eWare.GetPageNoFrameset('New'));       ///from 7.2b we must call this.
+    if (_version.indexOf("7.2")==0)
+	{
+      Response.Write(eWare.GetPageNoFrameset('New'));       ///from 7.2b we must call this.
+	}
   }catch(ex)
   {
-    Response.Write(eWare.GetPage('New'));///the above line will fail pre 7.2 and we fall back to the old method
+    try{
+      Response.Write(eWare.GetPage('New'));///the above line will fail pre 7.2 and we fall back to the old method
+	}catch(ex)
+    {
+	}
   }
   //as we hide the form we need to output these values
   Response.Write('<input type="HIDDEN" NAME="em" value="'+emmode+'" />');

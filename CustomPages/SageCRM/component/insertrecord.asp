@@ -12,11 +12,31 @@ Response.clear();
   var testMode = false;
   var TableName=new String(Request.QueryString('TableName'));
   var WhereClause=new String(Request.QueryString('WhereClause'));
+  var NoTLS=new String(Request.QueryString('NoTLS'));
+  var bNoTLS=false;
+  if (NoTLS=="Y")
+  {
+    bNoTLS=true;
+  }
 
   xmlDoc = Server.CreateObject("MSXML.DOMDocument");
   //actual line
+
+//patch/workaround for % chars and plus + chars
+var find = " _pct_ ";
+var regex = new RegExp(find, "g");
+var frm=new String(Request.Form);
+frm=frm.replace(regex, "%");
+
+var find2 = " _pls_ ";
+var regex2 = new RegExp(find2, "g");
+frm=frm.replace(regex2, "+");
+//patch/workaround
+  
+  //actual line
   if (!testMode){
-    xmlDoc.loadXML(Request.Form);
+    xmlDoc.loadXML(frm);
+
   }else{
     //testing line
     xmlDoc.load(Server.MapPath("sampledata.xml"));
@@ -25,10 +45,19 @@ Response.clear();
   xmlDocRoot = xmlDoc.selectSingleNode( strQuery );
   //Response.Write(xmlDocRoot.childNodes.length);
   urec=eWare.CreateRecord(TableName);
+  var bhas_comm_channelid=false;
   for (var i = 0 ; i < xmlDocRoot.childNodes.length; i++) {
     dataNode=xmlDocRoot.childNodes[i];
     var testStr=new String(dataNode.nodeName);
     var testStr=testStr.toLowerCase();
+    if (testStr=="comm_secterr")
+    {
+      dataNode.text=CRM.GetContextInfo("user","User_PrimaryTerritory");
+    }else
+	if (testStr=="comm_channelid")
+    {
+      bhas_comm_channelid=true;
+    }
     if (!isInArray(testStr)){
       if (testMode)
         Response.Write(dataNode.nodeName+"="+dataNode.text+"<br />");
@@ -44,7 +73,17 @@ Response.clear();
       }
     }
   }
-  urec.SaveChanges();
+  
+  if ((TableName.toLowerCase()=="communication")&&(!bhas_comm_channelid)) //patch to ensure that the team is set
+  {
+    urec("comm_channelid")=CRM.GetContextInfo("user","user_primarychannelid");
+  }
+  if (bNoTLS)
+  {
+    urec.SaveChangesNoTLS();
+  }else{
+    urec.SaveChanges();
+  }
   Response.Write(urec.RecordId);//success
 }catch(e){
   Response.Write('Error:Saving Record: '+TableName+ '  -  Desc: ' + e.description + '  -  ErrorNo: '+e.number + '  -XML: '+Request.Form);//failed
