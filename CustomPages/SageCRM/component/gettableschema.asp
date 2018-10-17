@@ -12,6 +12,11 @@
 try{
   Response.clear();
   var TableName=new String(Request.QueryString('TableName'));
+  
+  //only return certain columns.
+  var columnList=new String(Request.Form('columnList'));
+  //test line only
+  //columnList="comp_companyid,comp_name";
 
   var result="<?xml version=\"1.0\" standalone=\"yes\"?>";
   result+="<dataschema>";
@@ -27,12 +32,17 @@ try{
   {  
     //accomodate 7.1 changes
     var tablearr=TableName.split(",");
+	var _itemstoselect="*";
+	if ((columnList!=null)&&(columnList+""!="undefined")&&(columnList!=""))
+	{
+		_itemstoselect=columnList;
+	}
     var coreTable=tablearr[0];
     if (tablearr.length>1)
     {
         coreTable=tablearr[1];
     }
-    var fieldrec = eWare.CreateQueryObj("select top 1 * from "+coreTable);    
+    var fieldrec = eWare.CreateQueryObj("select top 1 "+_itemstoselect+" from "+coreTable);    
     fieldrec.SelectSQL();
     eQueryFields = new Enumerator(fieldrec);
   }catch(e)

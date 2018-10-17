@@ -7,7 +7,11 @@
 */
 //******************************************************************************
 try{
-  var SelectSQL=new String(Request.QueryString('SelectSQL'));
+  var SelectSQL=new String(Request.Form('SelectSQL'));
+  if( SelectSQL.toString() == "undefined")
+  {	
+	SelectSQL=new String(Request.QueryString('SelectSQL'));
+  }
 
   var result="<?xml version=\"1.0\" standalone=\"yes\"?>";
   result+="<dataschema>";

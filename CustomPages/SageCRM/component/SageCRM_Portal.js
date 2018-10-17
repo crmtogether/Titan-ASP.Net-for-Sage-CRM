@@ -6,8 +6,7 @@
 //******************************************************************************
 
 //we check that calls come from local machine only...this is to prevent sql injection attacks by accessing the .asp pages directly
-///this should be commented in when code deployed to live server
-/*
+//this should be commented in when code deployed to live server
 var localip=new String(Request.ServerVariables("LOCAL_ADDR"));
 var remoteip=new String(Request.ServerVariables("REMOTE_ADDR"));
 
@@ -16,7 +15,7 @@ if (localip.indexOf(remoteip)!=0)
   Response.Write("Cannot execute this page from remote server with IP address: "+remoteip);
   Response.End();
 }
-*/
+
 
 	// eWare mode constants
 

@@ -66,6 +66,7 @@ namespace SageCRM
             {
                 this.setConnection();
                 this.ds.SelectSQL = "select bord_idfield from custom_tables where bord_name='" + this.TableName + "'";
+                this.ds.Cachable = true;
                 IDataReader idr = ds.SelectData();  //get our IDataReader class
                 idr.Read();
                 tb_idcolumn.Text = idr["bord_idfield"].ToString();

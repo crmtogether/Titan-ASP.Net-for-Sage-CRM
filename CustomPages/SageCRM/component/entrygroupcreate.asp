@@ -50,13 +50,16 @@ try
   Holder.DisplayForm=false;
   Holder.DisplayButton(Button_Default) = false;
   block.ArgObj=record;
-  if (WorkflowName!="")
-  {  
-    record.SetWorkflowInfo(WorkflowName,WFState);     
-    Holder.ShowWorkflowButtons = true;
-    Holder.WorkflowTable = EntityName;
-  }
-  if ((eWare.Mode==Save) && (block.Validate())){   
+
+  if ((eWare.Mode==Save) && (block.Validate())){  
+  
+	if (WorkflowName!="")
+	{  
+		record.SetWorkflowInfo(WorkflowName,WFState);     
+		Holder.ShowWorkflowButtons = true;
+		Holder.WorkflowTable = EntityName;
+	}
+  
     Holder.Execute(record); ///save the changes
     //go to our new page..a summary page perhaps
     if (Defined(AfterSavePage) && AfterSavePage!=''){

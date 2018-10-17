@@ -23,7 +23,7 @@ try
   FilterBlock=new String(Request.QueryString("Filter"));
   SelectSQL=new String(Request.QueryString("SelectSQL"));
   var Evalcode=new String(Request.Form("Evalcode"));  
-
+  
   //workflow
   ShowNewWorkFlowButtons=new String(Request.QueryString("ShowNewWorkFlowButtons"));
   WorkFlowTable=new String(Request.QueryString("WorkFlowTable"));
@@ -39,7 +39,14 @@ try
     Container.WorkFlowTable=WorkFlowTable;
     Container.ShowWorkFlowButtons=ShowWorkFlowButtons;
   }
-  
+  function _parsesagecrm_code_all(val)
+  {
+    if (val=="sagecrm_code_all")
+	{
+	  return "";
+	}
+	return val;
+  }
   var filterSQL = new String("");
   if (Defined(FilterBlock)&& (FilterBlock!='')){
     FilterBlock=eWare.GetBlock(FilterBlock);
@@ -53,6 +60,44 @@ try
           y.EntryType=iEntryType_DateTime;
         if (yName.indexOf("_userid")>1)
           y.EntryType=iEntryType_UserSelect;
+		//patch for crm not supplying correc data for crystal manager field - crre_ignoresecurity-crre_category
+        //this fixes using the filter on a crm screen in 7.3
+		if (y.FieldName=="crre_ignoresecurity")	
+		{
+			y.EntryType = iEntryType_CheckBox;
+		}else if ((y.FieldName=="crre_category")||(y.FieldName=="crre_entity"))	
+		{
+			y.EntryType = iEntryType_Select;
+		}			
+		//  Response.Write(y.FieldName+"="+y.EntryType+"<br/>");
+		if (y.EntryType == iEntryType_CheckBox)
+        {
+		    var _val=new String(Request.Form(y.FieldName));
+			if (_val=="Checked")
+			{
+				if (filterSQL!="")
+					filterSQL+= " AND ";
+				filterSQL += " " + y.FieldName + " = 'Y' "; 
+			}else if (_val=="NotChecked")
+			{
+				if (filterSQL!="")
+					filterSQL+= " AND ";
+				filterSQL += " " + y.FieldName + " is null "; 			
+			}else{
+			  val="";///do nothing with this field
+			}
+		}
+		else	
+		if (y.EntryType == iEntryType_Select) 
+		{
+		      var _val=_parsesagecrm_code_all(Request.Form(y.FieldName));
+			  if (_val!="")
+			  {
+				  if (filterSQL!="")
+					filterSQL+= " AND ";
+				  filterSQL += " " + y.FieldName + " = '" + _val +"'";     
+              }			  
+		}else		
         if ((y.EntryType > iEntryType_Select) && !(((y.EntryType == iEntryType_DateTime) || (y.EntryType == iEntryType_Date)))) {   ///int
           if (filterSQL!="")
             filterSQL+= " AND ";
@@ -66,7 +111,7 @@ try
         }else{  //assume text type
           if (filterSQL!="")
             filterSQL+= " AND ";
-          filterSQL += " " + y.FieldName + " like '%" + Request.Form(y.FieldName) +"%'";      
+          filterSQL += " " + y.FieldName + " like '%" + _parsesagecrm_code_all(Request.Form(y.FieldName)) +"%'";      
         }
         
       }
@@ -149,11 +194,11 @@ try
     }
     return "";
   }
-  //debug line
-  //Response.Write("=="+filterSQL+"==");
   if ( (EntityWhere!="") && (filterSQL!="") )
     filterSQL=" AND "+filterSQL;
 
+  //debug line
+  //Response.Write("=="+filterSQL+"==");
 
   //get our listblock
   var block = eWare.GetBlock(ListBlock);
@@ -172,6 +217,7 @@ try
   }
   
   EntityWhere+=filterSQL;
+  //Response.Write(EntityWhere);
   if ( (!Defined(SelectSQL))|| (SelectSQL=="") ){
     //get our record object
     rs = eWare.FindRecord(EntityName, EntityWhere);

@@ -8,7 +8,15 @@
 //******************************************************************************
 try{
 Response.clear();
-  var SelectSQL=new String(Request.QueryString('SelectSQL'));
+   var SelectSQL=new String(Request.Form('SelectSQL'));
+  if( SelectSQL.toString() == "undefined")
+  {	
+	SelectSQL=new String(Request.QueryString('SelectSQL'));
+  } else {
+	var r1;
+    r1 = SelectSQL.replace(/%26/g, "&");
+    SelectSQL=r1;
+  }
   var result="<?xml version=\"1.0\" standalone=\"yes\"?>";
   result+="<dataschema>";
   debugcrm("tableschema_sql", Request.QueryString);

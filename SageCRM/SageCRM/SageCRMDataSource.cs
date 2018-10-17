@@ -10,6 +10,8 @@ using System.Drawing;
 using System.Collections.Specialized;
 using System.Security;
 
+using System.Configuration;
+
 [assembly: TagPrefix("SageCRM.AspNet", "SageCRM")]
 namespace SageCRM.AspNet
 {
@@ -32,7 +34,12 @@ namespace SageCRM.AspNet
 
         public IDataReader idr;
 
+        public bool Cachable = false;
+
         protected bool lastUpdateResult=false;
+
+        private string FWorkflow = "";
+        private string FWorkflowState = "";
 
         private string pr_NoTLS = "N";
         [Browsable(true)]
@@ -79,6 +86,7 @@ namespace SageCRM.AspNet
         }
         public string InsertRecord()
         {
+            this.Cachable = false;
             this.Insert(this.Parameters, new DataSourceViewOperationCallback(this.HandleInsertCallback));
             SageCRMDataSourceView tview = (SageCRMDataSourceView)this.GetView(String.Empty);
             return tview.RecordID;
@@ -90,6 +98,7 @@ namespace SageCRM.AspNet
         }
         public bool UpdateRecord()
         {
+            this.Cachable = false;
             //keysParams is not used as we use the where clause
             OrderedDictionary keysParams = new OrderedDictionary();
             OrderedDictionary OldValues = new OrderedDictionary();
@@ -165,6 +174,11 @@ namespace SageCRM.AspNet
                 return "/CustomPages/SageCRM/component/execsql.asp";
             }
         }
+        public void SetWorkflowInfo(string workflowname, string workflowstate)
+        {
+            FWorkflow = workflowname;
+            FWorkflowState = workflowstate;
+        }
         public string ExecSQL(string sqlExec)
         {
             SageCRMCustom FSageCRMCustom;
@@ -195,6 +209,7 @@ namespace SageCRM.AspNet
                 ViewState["Top"] = value;
             }
         }
+
         [Browsable(true)]
         [Category("Data")]
         [DefaultValue("")]
@@ -249,6 +264,23 @@ namespace SageCRM.AspNet
                 RaiseDataSourceChangedEvent(EventArgs.Empty);
             }
         }
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue("")]
+        [Description("The name of the columns to return")]
+        public virtual string ColumnList
+        {
+            get
+            {
+                string s = (string)ViewState["ColumnList"];
+                return s ?? "";
+            }
+            set
+            {
+                ViewState["ColumnList"] = value;
+                RaiseDataSourceChangedEvent(EventArgs.Empty);
+            }
+        }
         protected SageCRMConnection IterateThroughChildren(Control parent)
         {
             Control c2 = null;
@@ -274,7 +306,7 @@ namespace SageCRM.AspNet
         public IDataReader SelectData()
         {
             SageCRMDataSourceView sdv = this.Open() as SageCRMDataSourceView;
-            sdv.Select(DataSourceSelectArguments.Empty, this.do_nada);        
+            sdv.Select(DataSourceSelectArguments.Empty, this.do_nada);
             idr = new SageCRMDataViewReader(sdv.dv);
             return idr;
         }
@@ -311,7 +343,7 @@ namespace SageCRM.AspNet
         {
             if (null == view)
             {
-                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS);
+                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, this.FWorkflow, this.FWorkflowState);
             }
             return view;
         }
@@ -340,6 +372,8 @@ namespace SageCRM.AspNet
         protected SageCRMCustom FSageCRMCustom;
         protected bool FNoTLS = false;
 
+        protected string FColumnList; //comma delimited list of columns to be returned. allows us to use find record to only return some columns
+
         protected string idField = "";
         public DataView dv;//used for the data reader
 
@@ -348,6 +382,10 @@ namespace SageCRM.AspNet
         public DataSet objData;
         public DataSet objSchema;
 
+        public bool FCachable = false;
+
+        public string FWorkflow = "";
+        public string FWorkflowState = "";
 
         public bool isPortal
         {
@@ -366,7 +404,8 @@ namespace SageCRM.AspNet
         }
 
         public SageCRMDataSourceView(IDataSource owner, string TableName, string WhereClause,
-            SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop, bool pNoTLS)
+            SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop, bool pNoTLS, bool pCachable,string columnlist,
+            string Workflow, string WorkflowState)
             : base(owner, DefaultViewName)
         {
             FSageCRMConnection = SageCRMConnectionObj;
@@ -377,6 +416,10 @@ namespace SageCRM.AspNet
             FNoTLS = pNoTLS;
             FSageCRMCustom = new SageCRMCustom(); //we use this to make our request
             FSageCRMCustom.SageCRMConnection = FSageCRMConnection;
+            FCachable = pCachable;
+            FColumnList = columnlist;
+            FWorkflow = Workflow;
+            FWorkflowState = WorkflowState;
         }
 
         // The data source view is named. However, the SageCRMDataSource
@@ -456,6 +499,7 @@ namespace SageCRM.AspNet
             string xmlSchema = "";
             int rowcount = 0;
 
+
             this.FSelectSQL = this.FSelectSQL.Replace("+", "%2B");
             this.FWhereClause = this.FWhereClause.Replace("+", "%2B");
 
@@ -463,36 +507,82 @@ namespace SageCRM.AspNet
             string dataSchemaFile = "";
             if (FSelectSQL != "")
             {
+                string _datacachekey = "dataFile_" + this.FSelectSQL;
+                _datacachekey = _datacachekey.Replace(" ", "_");
                //get the schema xml
                 dataFile = this.getSelectSql_file();
                dataSchemaFile = this.getTableSchema_Selectsqlfile();
-               xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_Selectsqlfile(), "&SelectSQL=" + this.FSelectSQL, "", false);
+               xmlSchema = _getFromCache("dataSchemaFile_" + this.FSelectSQL);
+               //MR 4.7.1.1-fix fro caching of invalis session data
+               if ((xmlSchema == null)||(xmlSchema == ""))
+               {
+                   xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_Selectsqlfile(), "", "SelectSQL=" + this.FSelectSQL, false); //Fixes problem? "", "SelectSQL=" + this.FSelectSQL
+               }
+               if (FCachable)
+               {
+                   //check have we it already
+                   xmlData = _getFromCache(_datacachekey);
+               }
+               //MR 4.7.1.1-fix fro caching of invalis session data
                 //get the data xml
-                xmlData = FSageCRMCustom._GetHTML(this.getSelectSql_file(), 
-                    "&Top=" + selectArgs.MaximumRows.ToString() +
-                    "&iTop=" + this.FTop +
-                    "&iFrom=" + selectArgs.StartRowIndex.ToString() +
-                    "&iSort=" + selectArgs.SortExpression.ToString() +  
-                    "&grc=" + selectArgs.RetrieveTotalRowCount.ToString() +
-                    "&SelectSQL=" + this.FSelectSQL, "", false);
-            }
+                if ((xmlData == null)||(xmlData == ""))
+               {
+                   xmlData = FSageCRMCustom._GetHTML(this.getSelectSql_file(),
+                       "&Top=" + selectArgs.MaximumRows.ToString() +
+                       "&iTop=" + this.FTop +
+                       "&iFrom=" + selectArgs.StartRowIndex.ToString() +
+                       "&iSort=" + selectArgs.SortExpression.ToString() +
+                       "&grc=" + selectArgs.RetrieveTotalRowCount.ToString() +
+                        "", "SelectSQL=" + this.FSelectSQL, false);  // Fixes Problem? "", "SelectSQL=" + this.FSelectSQL
+                   if (FCachable)
+                   {
+                       //set the cache
+                           _setInCache(_datacachekey, xmlData);
+                       }
+                   }
+               }
             else
             {
                 dataFile = this.getFindRecord_file();
                 dataSchemaFile = this.getTableSchema_file();
+                string _datacachekey = "dataFile_" + this.FTableName + "_" + this.FWhereClause + "_" + this.FColumnList;
+                _datacachekey = _datacachekey.Replace(" ", "_");
                 //get the schema xml
-                xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
-                //get the data xml
-                xmlData = FSageCRMCustom._GetHTML(this.getFindRecord_file(), 
-                    "&TableName=" + this.FTableName + 
-                    "&WhereClause=" + this.FWhereClause +
-                    "&Top=" + selectArgs.MaximumRows.ToString() +
-                    "&iTop=" + this.FTop +
-                    "&iFrom=" + selectArgs.StartRowIndex.ToString() +
-                    "&iSort=" + selectArgs.SortExpression.ToString() +
-                    "&grc=" + selectArgs.RetrieveTotalRowCount.ToString()
-                    , "", false);
-            }
+                //to do turn back on....
+                xmlSchema = _getFromCache("dataSchemaFile_" + this.FTableName+ "_" + this.FColumnList);
+                //MR 4.7.1.1-fix fro caching of invalis session data
+                if ((xmlSchema == null) || (xmlSchema == ""))
+                {
+                    FSageCRMCustom.customPostData = "columnList=" + this.FColumnList;
+                    xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
+                        _setInCache("dataSchemaFile_" + this.FTableName + "_" + this.FColumnList, xmlSchema);
+                    }
+                if (FCachable)
+                {
+                    //check have we it already
+                    xmlData = _getFromCache(_datacachekey);
+                }
+                //MR 4.7.1.1-fix fro caching of invalis session data
+                if ((xmlData == null)||(xmlData == ""))
+                {
+                    //get the data xml
+                    FSageCRMCustom.customPostData = "columnList=" + this.FColumnList;
+                    xmlData = FSageCRMCustom._GetHTML(this.getFindRecord_file(),
+                        "&TableName=" + this.FTableName +
+                        "&WhereClause=" + this.FWhereClause +
+                        "&Top=" + selectArgs.MaximumRows.ToString() +
+                        "&iTop=" + this.FTop +
+                        "&iFrom=" + selectArgs.StartRowIndex.ToString() +
+                        "&iSort=" + selectArgs.SortExpression.ToString() +
+                        "&grc=" + selectArgs.RetrieveTotalRowCount.ToString()
+                        , "", false);
+                    if (FCachable)
+                    {
+                        //set the cache
+                            _setInCache(_datacachekey, xmlData);
+                        }
+                    }
+                }
             //build our StreamReaders
             StringReader xmlStreamSchema = new StringReader(xmlSchema.ToString());
             StringReader xmlStreamData = new StringReader(xmlData.ToString());
@@ -505,6 +595,8 @@ namespace SageCRM.AspNet
             catch (Exception e)
             {
                 throw new InvalidOperationException("Error in schema data (check properties)." +
+                    System.Environment.NewLine +
+                    "CRMPortalPath=" + this.FSageCRMConnection.CRMPortalPath +
                     System.Environment.NewLine +
                     "ASP File=" + dataFile +
                     System.Environment.NewLine +
@@ -771,7 +863,12 @@ namespace SageCRM.AspNet
         {
             DataColumn col;
             //get the schema xml
-            string xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
+            string xmlSchema = _getFromCache("insert_TableName=" + this.FTableName);
+            if ((xmlSchema == null) || (xmlSchema == ""))
+            {
+                xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
+                    _setInCache("insert_TableName=" + this.FTableName, xmlSchema);
+                }
             //build our StreamReaders
             StringReader xmlStreamSchema = new StringReader(xmlSchema.ToString());
             //the schema dataset
@@ -831,7 +928,13 @@ namespace SageCRM.AspNet
             {
                 _NoTLS = "&NoTLS=Y";
             }
-            string RequestResult = FSageCRMCustom._GetHTML(this.getInsertRecord_file(), "&TableName=" + this.FTableName + _NoTLS, builder.ToString(), false);
+            //april 2018..add in workflow to mobilex...w= is workflow and s= is state
+            string _workflow = "";
+            if ((FWorkflow!="")&&(FWorkflowState!=""))
+            {
+                _workflow = "&w=" + FWorkflow + "&s=" + FWorkflowState;
+            }
+            string RequestResult = FSageCRMCustom._GetHTML(this.getInsertRecord_file(), "&TableName=" + this.FTableName + _NoTLS+_workflow, builder.ToString(), false);
             this.RecordID = RequestResult;
             //in this case RequestResult is the id of the new record
             return 1;
@@ -952,6 +1055,42 @@ namespace SageCRM.AspNet
                 return "/CustomPages/SageCRM/component/updaterecord.asp";
             }
         }
+
+        private string _getFromCache(string cacheKey)
+        {
+            if (ConfigurationManager.AppSettings["DisableCaching"] == "Y")  ///mr 6 apr 18 - added this into try improve speed
+            {
+                return "";
+            }
+
+            string cacheValue = (string) HttpRuntime.Cache[cacheKey];
+            if (string.IsNullOrEmpty(cacheValue))
+                return "";
+
+            if (cacheValue.ToLower().IndexOf("<html><head>") == 0)
+                return "";
+
+            return cacheValue;
+        }
+        private void _setInCache(string cacheKey, string cachevalue)
+        {
+            if (ConfigurationManager.AppSettings["DisableCaching"] == "Y")  ///mr 6 apr 18 - added this into try improve speed
+            {
+                return;
+            }
+
+            if ((cachevalue != null) && (cachevalue.ToLower().IndexOf("<html><head>") == -1))
+            {
+                HttpRuntime.Cache.Insert(cacheKey,
+                       cachevalue,//Records
+                       null,//No Dependency
+                       System.Web.Caching.Cache.NoAbsoluteExpiration,//No Absolute Expiration
+                       TimeSpan.FromMinutes(60));//Expire in 30 mins
+
+            }
+
+        }
+       
     }
 
 }

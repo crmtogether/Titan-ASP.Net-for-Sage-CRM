@@ -8,7 +8,11 @@
 */
 //******************************************************************************
 try{
-  var SQL=new String(Request.QueryString('SelectSQL'));
+  var SQL=new String(Request.Form('SelectSQL'));
+  if( SQL.toString() == "undefined")
+  {	
+	SQL=new String(Request.QueryString('SelectSQL'));
+  }
   //how many records to display
   var Top=new Number(Request.QueryString('Top'));
   //iTop is used when coding

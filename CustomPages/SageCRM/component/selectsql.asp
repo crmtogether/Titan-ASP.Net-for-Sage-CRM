@@ -8,7 +8,16 @@
 //******************************************************************************
 //try{
 Response.clear();
-  var SQL=new String(Request.QueryString('SelectSQL'));
+  var SQL=new String(Request.Form('SelectSQL'));
+  if( SQL.toString() == "undefined")
+  {	
+	SQL=new String(Request.QueryString('SelectSQL'));
+  } else {
+	var r1;
+    r1 = SQL.replace(/%26/g, "&");
+    SQL=r1;
+  }
+  
   //how many records to display
   var Top=new Number(Request.QueryString('Top'));
   //iTop is used when coding

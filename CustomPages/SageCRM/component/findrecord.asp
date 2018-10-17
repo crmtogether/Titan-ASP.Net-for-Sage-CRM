@@ -8,7 +8,7 @@
 *  http://localhost/crm71/custompages/sagecrm/component/findrecord.asp?SID=56295243957079&TableName=company,vcompanype&WhereClause=comp_companyid%3C50
 */
 //******************************************************************************
-try{
+//try{
 Response.clear();
   var TableName=new String(Request.QueryString('TableName'));
   var WhereClause=new String(Request.QueryString('WhereClause'));
@@ -19,6 +19,11 @@ Response.clear();
   var iTop=new Number(Request.QueryString('iTop'));
   //where to display data from.
   var iFrom=new Number(Request.QueryString('iFrom'));
+  
+  //only return certain columns.
+  var columnList=new String(Request.Form('columnList'));
+    //test line only
+  //columnList="comp_companyid,comp_name";
   
   //accomodate 7.1 changes
     var tablearr=TableName.split(",");
@@ -55,10 +60,17 @@ Response.clear();
   var result="<?xml version=\"1.0\" standalone=\"yes\"?>";
   result+="<data>";
   var record=eWare.FindRecord(TableName,WhereClause);
-
+  
+  var _itemstoselect="*";
+  
+  if ((columnList!=null)&&(columnList+""!="undefined")&&(columnList!=""))
+	{
+		_itemstoselect=columnList;
+	}
+	
   try
   {
-    var fieldrec = eWare.CreateQueryObj("select top 1 * from "+coreTable);    
+    var fieldrec = eWare.CreateQueryObj("select top 1 "+_itemstoselect+" from "+coreTable);    
     fieldrec.SelectSQL();
     eQueryFields = new Enumerator(fieldrec);
     while (!eQueryFields.atEnd()) {
@@ -92,16 +104,19 @@ Response.clear();
           result+="<"+tablearr[0]+">";
           result+="<"+record.idfield+">"+record[record.idfield]+"</"+record.idfield+">";
           for(i=0;i<fieldarr.length;i++){
-            fieldval=record[fieldarr[i]];
-            if (!Defined(record[fieldarr[i]])){
-              fieldval="";
-              if (i==0)  //fix for when the data in the first column is blank...breaks xml 
-                fieldval="_";
-            }
-            fieldName=new String(fieldarr[i]);
-            fieldName=fieldName.replace(/\s/g, '');    
-            if (record.idfield!=fieldarr[i])
-              result+="<"+fieldName+">"+CustomEscape(fieldval)+"</"+fieldName+">";
+		    var fieldName=new String(fieldarr[i]);
+		    
+			fieldval=record[fieldarr[i]];
+			if (!Defined(record[fieldarr[i]])){
+			  fieldval="";
+			  if (i==0)  //fix for when the data in the first column is blank...breaks xml 
+				fieldval="_";
+			}
+			fieldName=fieldName.replace(/\s/g, '');    
+			if (record.idfield!=fieldarr[i]){
+				result+="<"+fieldName+">"+CustomEscape(fieldval)+"</"+fieldName+">";
+			}
+			
           }
           result+="</"+tablearr[0]+">";
         }
@@ -118,9 +133,9 @@ Response.clear();
   Response.Write(result);
   debugcrm("findrecord", result);
   Response.End();
-}catch(e){
-  logerror(e);
-}
+//}catch(e){
+  //logerror(e);//
+//}
 
 function _getuser(uid){
   if (((Defined(uid)) && (uid!='')) && (!isNaN(uid))) {

@@ -18,7 +18,10 @@ Response.clear();
   {
     bNoTLS=true;
   }
-
+  
+  var Workflow=new String(Request.QueryString('w'));
+  var WorkflowState=new String(Request.QueryString('s'));
+  
   xmlDoc = Server.CreateObject("MSXML.DOMDocument");
   //actual line
 
@@ -31,6 +34,10 @@ frm=frm.replace(regex, "%");
 var find2 = " _pls_ ";
 var regex2 = new RegExp(find2, "g");
 frm=frm.replace(regex2, "+");
+
+var find3 = " _apo_ ";
+var regex3 = new RegExp(find3, "g");
+frm=frm.replace(regex3, "'");
 //patch/workaround
   
   //actual line
@@ -45,6 +52,12 @@ frm=frm.replace(regex2, "+");
   xmlDocRoot = xmlDoc.selectSingleNode( strQuery );
   //Response.Write(xmlDocRoot.childNodes.length);
   urec=eWare.CreateRecord(TableName);
+  
+  if ((Workflow!="")&&(Workflow+""!="undefined"))
+  {
+    urec.setWorkFlowInfo(Workflow, WorkflowState);
+  }
+  
   var bhas_comm_channelid=false;
   for (var i = 0 ; i < xmlDocRoot.childNodes.length; i++) {
     dataNode=xmlDocRoot.childNodes[i];
@@ -52,7 +65,7 @@ frm=frm.replace(regex2, "+");
     var testStr=testStr.toLowerCase();
     if (testStr=="comm_secterr")
     {
-      dataNode.text=CRM.GetContextInfo("user","User_PrimaryTerritory");
+     // dataNode.text=CRM.GetContextInfo("user","User_PrimaryTerritory");
     }else
 	if (testStr=="comm_channelid")
     {

@@ -31,6 +31,10 @@ frm=frm.replace(regex, "%");
 var find2 = " _pls_ ";
 var regex2 = new RegExp(find2, "g");
 frm=frm.replace(regex2, "+");
+
+var find3 = " _apo_ ";
+var regex3 = new RegExp(find3, "g");
+frm=frm.replace(regex3, "'");
 //patch/workaround
   
   //actual line

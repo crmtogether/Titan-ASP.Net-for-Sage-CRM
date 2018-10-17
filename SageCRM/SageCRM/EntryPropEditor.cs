@@ -316,6 +316,7 @@ namespace SageCRM
             {
                 this.setConnection();
                 this.ds.SelectSQL = "select bord_idfield from custom_tables where bord_caption='" + this.EntityName + "'";
+                this.ds.Cachable = true;
                 IDataReader idr = ds.SelectData();  //get our IDataReader class
                 while (idr.Read())
                 {

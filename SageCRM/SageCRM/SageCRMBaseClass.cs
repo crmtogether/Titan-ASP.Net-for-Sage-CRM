@@ -32,6 +32,8 @@ namespace SageCRM.AspNet
 
         public bool NoPostData = false;//we use this to prevent unnecessary post data being submited to the asp pages-needed for file large uploads
 
+        public string customPostData = "";
+
         private string FVersion="3.2.0";
 
         public bool showTrialML = false;//READ THIS do not set this to true here..it is set in the component itself
@@ -46,6 +48,8 @@ namespace SageCRM.AspNet
                 return "not_implemented";
             }
         }
+
+
 
         [Browsable(false)]
         [Bindable(false)]
@@ -127,6 +131,11 @@ namespace SageCRM.AspNet
             iEndChar = Path.IndexOf("/custompages", StringComparison.Ordinal);
             if (iEndChar == -1)  //we may still be in dev mode (not designmode now)..assume we are
             {
+                if (false)
+                {
+                    //dev
+                    SageCRMConnection.CRMPath = "http://dev1.crmtogether.com/CRM2018R1/";
+                }
                 Path = SageCRMConnection.CRMPath;  //http://localhost/crm
                 Path = Path.ToLower();
                 iStartChar = Path.LastIndexOf("/", StringComparison.Ordinal);
@@ -229,9 +238,19 @@ namespace SageCRM.AspNet
             if (SageCRMConnection == null)
                 return "No SageCRMConnection set (GetTrans Method)";
 
-            return _GetHTML(SageCRMConnection.IsPortal 
-                ? "GetTrans_portal.asp" 
-                : "/CustomPages/SageCRM/component/GetTrans.asp", "&Family=" + Family + "&Caption=" + Caption, "", false, false);
+            string res = _getFromCache("Trans_" + Family + "_" + Caption);
+            if ((res != null) && (res != ""))
+            {
+                return res;
+            }
+            
+            res= _GetHTML(SageCRMConnection.IsPortal 
+                    ? "GetTrans_portal.asp"
+                    : "/CustomPages/SageCRM/component/GetTrans.asp", "&Family=" + Family + "&Caption=" + Caption, "", false, false);
+            
+            _setInCache("Trans_" + Family + "_" + Caption, res);
+
+             return res;
         }
 
         public bool PortalLogout()
@@ -284,8 +303,16 @@ namespace SageCRM.AspNet
                 {
                     SageCRMConnection.PortalUserName = username;
                     SageCRMConnection.PortalUserPassword = password;
-                    HttpCookie icookie=new HttpCookie("EWARESESS","userid=" + SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
+                    if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                    {
+                        SageCRMConnection.PortalUserPassword = Encrypt.EncryptString(SageCRMConnection.PortalUserPassword, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
+                    }
+                    HttpCookie icookie = new HttpCookie("EWARESESS", "userid=" + SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
                     HttpContext.Current.Response.Cookies.Add(icookie);
+                    HttpCookie icookieEWAREID = new HttpCookie("EWAREID", "abc");
+                    HttpContext.Current.Response.Cookies.Add(icookieEWAREID);
+                    HttpCookie icookieEWARESELOGON = new HttpCookie("EWARESELOGON", SageCRMConnection.PortalUserName);
+                    HttpContext.Current.Response.Cookies.Add(icookieEWARESELOGON);
                 }
                 return bresult;
             }
@@ -308,34 +335,116 @@ namespace SageCRM.AspNet
                 ? _GetHTML("AuthenticationError.asp", "", "", false, false) 
                 : "No SageCRMConnection set (AuthenticationError Method)";
         }
-
+        private string _getuniqueidforportal()
+        {
+            // Load Header collection into NameValueCollection object.
+            int loop1;
+            if (Context.Request.Headers["Cookie"] == null)
+            {
+                return "";
+            }
+            string Cookieval = Context.Request.Headers["Cookie"];
+            //  Response.Write(Cookieval + "<br />");
+            string[] coll = Cookieval.Split(';');
+            //Response.Write(coll.Length.ToString() + "<br />");
+            for (loop1 = 0; loop1 < coll.Length; loop1++)
+            {
+                //Response.Write("<br />"+coll[loop1]);
+                string[] nval = coll[loop1].Split('=');
+                //Response.Write("="+nval[0] + "=x=" + nval[1] + "<br />");
+                nval[0] = nval[0].Trim();
+                if (nval[0] == "ASP.NET_SessionId")
+                {
+                    return nval[1];
+                }
+            }
+            return "";
+        }
         public string GetVisitorInfo(string FieldName)
         {
 			this.NoPostData = true;
-            string res= SageCRMConnection != null 
+            string res="";
+            string uniquesessionid = _getuniqueidforportal();
+            string _cachekey = uniquesessionid + "_" + FieldName;
+            //turned off caching here for now as looks likem PortalUserName is not set
+            if (uniquesessionid != "")
+            {
+                res = _getFromCache(_cachekey);
+            if (ConfigurationManager.AppSettings["DisableCaching"] == "Y")  
+            {
+                res = "";
+            }
+            if ((res!=null)&&(res!=""))
+            {
+                return res;
+            }
+            }
+            res = SageCRMConnection != null 
                 ? _GetHTML("getVisitorInfo.asp", "&FieldName=" + FieldName, "", false, false) 
                 : "No SageCRMConnection set (GetVisitorInfo Method)";
             this.NoPostData = false;
+            if ((uniquesessionid != "") && (res != "No SageCRMConnection set (GetVisitorInfo Method)"))
+            {
+                _setInCache(_cachekey, res);
+            }
             return res;
         }
 
         public string SetVisitorInfo(string FieldName, string FieldValue)
         {
             this.NoPostData = true;
+
+            string uniquesessionid = _getuniqueidforportal();
+            string _cachekey = uniquesessionid + "_" + FieldName;
+           
             string res= SageCRMConnection != null 
                 ? _GetHTML("setVisitorInfo.asp", "&FieldName=" + FieldName + "&FieldValue=" + FieldValue, "", false, false) 
                 : "No SageCRMConnection set (SetVisitorInfo Method)";
             this.NoPostData = false;
+            if (ConfigurationManager.AppSettings["DisableCaching"] != "Y")  
+            {
+                if ((uniquesessionid != "") && (res != "No SageCRMConnection set (GetVisitorInfo Method)"))
+                {
+                    _setInCache(_cachekey, res);
+                }
+            }
             return res;
         }
 
         public string GetContextInfo(string Context, string FieldName)
         {
-			this.NoPostData = true;            
-            string res= SageCRMConnection != null 
-                ? _GetHTML("/CustomPages/SageCRM/component/GetContextInfo.asp", "&Context=" + Context + "&FieldName=" + FieldName, "", false, false) 
+            return GetContextInfo(Context, FieldName, true);
+        }
+        public string GetContextInfo(string Context, string FieldName, bool usecache)
+        {
+            this.NoPostData = true;
+            string _sid = "";
+            if ((HttpContext.Current.Request!=null)&&(HttpContext.Current.Request.QueryString!=null))
+            {
+                _sid=HttpContext.Current.Request.QueryString.Get("SID");
+            }
+            if (_sid==null)
+            {
+                _sid = "";
+            }
+            string _cachestring = "GetContextInfo_" + Context + "_" + FieldName + "_" + _sid;
+            string res = "";
+            if ((_sid!="")&&(usecache))
+            {
+                res=_getFromCache(_cachestring);
+                if ((res != null)&&(res != ""))
+                {
+                    return res;
+                }
+            }
+            res = SageCRMConnection != null
+                ? _GetHTML("/CustomPages/SageCRM/component/GetContextInfo.asp", "&Context=" + Context + "&FieldName=" + FieldName, "", false, false)
                 : "No SageCRMConnection set (GetContextInfo Method)";
             this.NoPostData = false;
+            if ((_sid != "") && (usecache) && (res != "No SageCRMConnection set (GetContextInfo Method)"))
+            {
+                _setInCache(_cachestring, res);            
+            }
             return res;
         }
 
@@ -368,6 +477,11 @@ namespace SageCRM.AspNet
         }
         public virtual string _GetHTML(string vpath, string extraparams, string xmldata, bool CallRenderEvent, string Evalcode)
         {
+            
+           // System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;//sept2016 
+            //oct 2016--with fallback
+          //  System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
             if (SageCRMConnection == null)
             {
                 return "NOSAGECRMConnection Object(base)";
@@ -438,14 +552,36 @@ namespace SageCRM.AspNet
             }
 
             var encoding = new UTF8Encoding();
-//            ASCIIEncoding encoding = new ASCIIEncoding();
+            //ASCIIEncoding encoding = new ASCIIEncoding();
 
             //NoPostData-added april 2015 
             if ((PostData == null) || (this.NoPostData))
             {
                 PostData = "";
             }
+            if ((PostData == "") && (this.customPostData != null) && (this.customPostData != ""))  //april 2018...using in sagecrmdatasource to allow us limit the columns returned in find record
+            {
+                PostData = this.customPostData;
+            }
             byte[] data = encoding.GetBytes(PostData);
+            if (vpath.EndsWith("/selectsql.asp") || vpath.EndsWith("/gettableschema_selectsql.asp") 
+                || vpath.EndsWith("gettableschema_selectsql_portal.asp") || vpath.EndsWith("selectsql_portal.asp")
+                || vpath.EndsWith("deleterecord_portal.asp")) //vpath.EndsWith("/selectsql.asp") || vpath.EndsWith("/gettableschema_selectsql.asp")
+            {
+                if (xmldata.Contains("%2B") && !xmldata.Contains("+"))
+                {
+                    xmldata = xmldata.Replace("%2B", "+");
+                    data = encoding.GetBytes(xmldata.Replace("%", "%25").Replace(" ", "%20").Replace("+", "%2B"));
+                }
+                else
+                {
+                    data = encoding.GetBytes(xmldata.Replace("%", "%25").Replace(" ", "%20").Replace("+", "%2B")); //.Replace(" ", "%20")
+                }
+            }
+            else
+            {
+                data = encoding.GetBytes(PostData);
+            }
 
             // prepare the web page we will be asking for
             string requeststring = "";
@@ -469,6 +605,9 @@ namespace SageCRM.AspNet
             {
                 requeststring += "&crmver=" + SageCRMConnection.SageCRMVersion.ToString();
             }
+            //mr fix to get the pages to render with scripts in place
+           
+            
             if ((HttpContext.Current != null) && (!SageCRMConnection.IsPortal))
             {
                 string sRQ = HttpContext.Current.Request.QueryString.ToString();
@@ -508,15 +647,35 @@ namespace SageCRM.AspNet
                             my_qstr += en1.Current + "=" + HttpUtility.UrlEncode(str_unencval);
                         }
                     }
+                    //REMOVE...DEBUG ONLY
+                   // SageCRMConnection.CRMPath = "http://dev1.crmtogether.com/crm2018r1";
                     requeststring = SageCRMConnection.CRMPath + vpath + "?" + my_qstr.ToString() + extraparams;
                 }
             }
             //add in the db...which will be used later
             //..Y=N to stop it from being added to the history
             requeststring += "&2=2&Y=N&CRMDB=" + SageCRMConnection.CRMDB;
-
+            //ignore SSL cert issues....see
+            //http://stackoverflow.com/questions/12506575/how-to-ignore-the-certificate-check-when-ssl
+            //and
+            //http://weblog.west-wind.com/posts/2011/Feb/11/HttpWebRequest-and-Ignoring-SSL-Certificate-Errors
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            if (ConfigurationManager.AppSettings["Expect100Continue"] != "Y")  ///mr 6 apr 18 - added this into try improve speed
+            {
+                ServicePointManager.Expect100Continue = false;
+                //ref: https://en.code-bude.net/2013/01/21/3-things-you-should-know-to-speed-up-httpwebrequest/
+            }
+            if (ConfigurationManager.AppSettings["DefaultConnectionLimit"] != null)  ///mr 6 apr 18 - added this into try improve speed
+            {
+                ServicePointManager.DefaultConnectionLimit = Convert.ToInt32(ConfigurationManager.AppSettings["DefaultConnectionLimit"].ToString());
+            }
             //portal code
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(requeststring);
+            if (ConfigurationManager.AppSettings["DetectProxy"] != "Y")  ///mr 6 apr 18 - added this into try improve speed
+            {
+                request.Proxy = null;
+                //ref: https://en.code-bude.net/2013/01/21/3-things-you-should-know-to-speed-up-httpwebrequest/
+            }
             if ((ConfigurationManager.AppSettings["CRMNetworkUser"] != null) &&
                 (ConfigurationManager.AppSettings["CRMNetworkUser"] != ""))
             {
@@ -539,22 +698,77 @@ namespace SageCRM.AspNet
                 //new way to detect if we are debugging
                 if (System.Diagnostics.Debugger.IsAttached)
                 {
-                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + 
+                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" +
                         SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
                 }
                 else
                 {
                     //make sure that we send in the cookies from the original request as 
                     //we are imiatating the original callers credentials
-                    request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
+                    if (SageCRMConnection.IsPortal)
+                    {
+                        if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                        {
+                            if ((HttpContext.Current.Request.Cookies["EWARESESS"] != null) && (HttpContext.Current.Request.Cookies["EWARESESS"]["userid"]!=null))
+                            {
+                                SageCRMConnection.PortalUserName = HttpContext.Current.Request.Cookies["EWARESESS"]["userid"].ToString();
+                                SageCRMConnection.PortalUserPassword = HttpContext.Current.Request.Cookies["EWARESESS"]["password"].ToString();
+                            }
+                        }
+                        string passwordInCookie = SageCRMConnection.PortalUserPassword;
+                        try
+                        {
+                            if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                            {
+                                passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
+                                request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + passwordInCookie);
+                       //         request.Headers.Add(HttpRequestHeader.Cookie, "EWARESELOGON=" + SageCRMConnection.PortalUserName);
+                            } 
+                            else
+                            {
+                                request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
+                            }
+               
+                        }
+                        catch (Exception exdecrypt)
+                        {
+                            request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
+                        }                
+                    }
+                    else
+                    {
+                        request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
+                    }
                 }
             }
             else
             {
                 if (SageCRMConnection.IsPortal)
                 {
-                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + 
-                        SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
+                    if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                    {
+                        if ((HttpContext.Current.Request.Cookies["EWARESESS"] != null) && (HttpContext.Current.Request.Cookies["EWARESESS"]["userid"] != null))
+                        {
+                            SageCRMConnection.PortalUserName = HttpContext.Current.Request.Cookies["EWARESESS"]["userid"].ToString();
+                            SageCRMConnection.PortalUserPassword = HttpContext.Current.Request.Cookies["EWARESESS"]["password"].ToString();
+                        }
+                    }
+                    string passwordInCookie = SageCRMConnection.PortalUserPassword;
+                    try
+                    {
+                        if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                        {
+                            passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
+                        }
+                    }
+                    catch (Exception exdecrypt)
+                    {
+                        //this can happen if we are changing to using encrypted.... 
+                    }
+                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + passwordInCookie);
+                } else
+                {
+                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
                 }
             }
             request.Accept = "*/*";
@@ -694,6 +908,62 @@ namespace SageCRM.AspNet
         //update 20th March 14 - removed license code
         public string _setTrialHTML(string renderHtml){
             return renderHtml;
+        }
+
+        //new method for the portal...needed here as its a website so the code is available
+        public void _formatConfig()
+        {
+            //lblLineItems2 is a secret code to make the system check for a license
+            if (ConfigurationManager.AppSettings["lblLineItems2"] != null)
+            {
+                if (ConfigurationManager.AppSettings["CRMTogetherCustomer365License"] != null)
+                {
+                    string sageCRMSuiteLicense = ConfigurationManager.AppSettings["CRMTogetherCustomer365License"].ToString();
+                    string sageCRMSuiteLicenseDecoded = "";
+                    sageCRMSuiteLicenseDecoded = converter.Decrypt(sageCRMSuiteLicense,false,false,false,false,false,true);
+                    if (sageCRMSuiteLicenseDecoded == "LICENSEERROR")
+                    {
+                        throw new Exception("License mismatch:");
+                    }
+                }
+                else
+                {
+                    throw new Exception("License Missing");
+                }
+            }
+        }
+
+        private string _getFromCache(string cacheKey)
+        {
+            if (ConfigurationManager.AppSettings["disableCache"]=="Y")
+            {
+                return "";
+            }
+            string cacheValue = (string)HttpRuntime.Cache[cacheKey];
+            if (string.IsNullOrEmpty(cacheValue))
+                return "";
+
+            if (cacheValue.ToLower().IndexOf("<html><head>") == 0)
+                return "";
+
+            return cacheValue;
+        }
+        private void _setInCache(string cacheKey, string cachevalue)
+        {
+
+            if (ConfigurationManager.AppSettings["disableCache"] != "Y")
+            {
+                if ((cachevalue != null) && (cachevalue.ToLower().IndexOf("<html><head>") == -1))
+                {
+                    HttpRuntime.Cache.Insert(cacheKey,
+                           cachevalue,//Records
+                           null,//No Dependency
+                           System.Web.Caching.Cache.NoAbsoluteExpiration,//No Absolute Expiration
+                           TimeSpan.FromMinutes(60));//Expire in 30 mins
+
+                }
+            }
+
         }
 
     }
