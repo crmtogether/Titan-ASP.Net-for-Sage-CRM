@@ -2,7 +2,7 @@ The ASP.Net component project/solution is located in
 
 Titan\SageCRM\SageCRM.sln
 
-This is built using Visual Studio 2010
+This is built using Visual Studio 
 
 ***************************************************************
 

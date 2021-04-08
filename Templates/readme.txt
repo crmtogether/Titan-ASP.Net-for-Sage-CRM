@@ -1,1 +1,0 @@
-This folder contains the Visual Studio project and item templates vsi files.
