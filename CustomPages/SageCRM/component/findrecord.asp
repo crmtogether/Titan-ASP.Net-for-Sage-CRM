@@ -12,6 +12,7 @@
 Response.clear();
   var TableName=new String(Request.QueryString('TableName'));
   var WhereClause=new String(Request.QueryString('WhereClause'));
+  var OrderBy=new String(Request.QueryString('OrderBy'));
   //Top is used by data aware controls
   //how many records to display in a data enabled control
   var Top=new Number(Request.QueryString('Top'));
@@ -59,8 +60,12 @@ Response.clear();
   var fieldtype=new Array();
   var result="<?xml version=\"1.0\" standalone=\"yes\"?>";
   result+="<data>";
-  var record=eWare.FindRecord(TableName,WhereClause);
   
+  var record=eWare.FindRecord(TableName,WhereClause);
+  if (OrderBy+""!="undefined")
+  {
+    record.OrderBy=OrderBy;
+  }
   var _itemstoselect="*";
   
   if ((columnList!=null)&&(columnList+""!="undefined")&&(columnList!=""))
@@ -105,16 +110,22 @@ Response.clear();
           result+="<"+record.idfield+">"+record[record.idfield]+"</"+record.idfield+">";
           for(i=0;i<fieldarr.length;i++){
 		    var fieldName=new String(fieldarr[i]);
-		    
-			fieldval=record[fieldarr[i]];
-			if (!Defined(record[fieldarr[i]])){
-			  fieldval="";
-			  if (i==0)  //fix for when the data in the first column is blank...breaks xml 
-				fieldval="_";
-			}
-			fieldName=fieldName.replace(/\s/g, '');    
-			if (record.idfield!=fieldarr[i]){
-				result+="<"+fieldName+">"+CustomEscape(fieldval)+"</"+fieldName+">";
+		   // Response.Write('<br>'+fieldarr[i]);
+			//Response.Flush();
+			try{
+				fieldval=record[fieldarr[i]];
+				if (!Defined(record[fieldarr[i]])){
+				  fieldval="";
+				  if (i==0)  //fix for when the data in the first column is blank...breaks xml 
+					fieldval="_";
+				}
+				fieldName=fieldName.replace(/\s/g, '');    
+				if (record.idfield!=fieldarr[i]){
+					result+="<"+fieldName+">"+CustomEscape(fieldval)+"</"+fieldName+">";
+				}
+			}catch(errField){
+			  //carry on?
+			  result+="<"+fieldName+">ERROR with field data</"+fieldName+">";
 			}
 			
           }

@@ -1,4 +1,5 @@
 <%  
+
   var record=eWare.CreateQueryObj(SQL);
   record.SelectSQL();
   iTopCount=0;
@@ -16,18 +17,24 @@
             icol++;
             var fieldx=eQueryFields.item();
             fieldx=fieldx.toLowerCase();
-            fieldx=fieldx.replace(/\s/g, "");        
-            fieldval=record.FieldValue(fieldx);
-            if (!Defined(fieldval)){
-              fieldval="";
-            }
-            if (fieldval=="")
-              fieldval="";
-            if (fieldx=="")
-            {
-              fieldx="nocolumnname"+icol;
-            }
-            result+="<"+escape(fieldx)+">"+(CustomEscape(fieldval))+"</"+escape(fieldx)+">";
+            fieldx=fieldx.replace(/\s/g, "");     
+			try{			
+				fieldval=record.FieldValue(fieldx);
+				
+				if (!Defined(fieldval)){
+				  fieldval="";
+				}
+				if (fieldval=="")
+				  fieldval="";
+				if (fieldx=="")
+				{
+				  fieldx="nocolumnname"+icol;
+				}
+				result+="<"+escape(fieldx)+">"+(CustomEscape(fieldval))+"</"+escape(fieldx)+">";
+			}catch(errField){
+			  //carry on?
+			  result+="<"+escape(fieldx)+">ERROR with field data</"+escape(fieldx)+">";
+			}
             eQueryFields.moveNext();
           }
           result+="</datatable>";

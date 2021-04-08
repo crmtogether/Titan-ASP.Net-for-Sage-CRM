@@ -36,9 +36,11 @@ namespace SageCRM.AspNet
 
         private string FVersion="3.2.0";
 
-        public bool showTrialML = false;//READ THIS do not set this to true here..it is set in the component itself
+        public bool showTrialML = false;//READ THIS do SageCRMBaseClass set this to true here..it is set in the component itself
         //declaring the event
         public event BeforeRenderingEventHandler BeforeRendering;
+
+        public bool onlyUseTLS12 = false;
 
         [Browsable(false)]
         public virtual string editorURL
@@ -243,10 +245,11 @@ namespace SageCRM.AspNet
             {
                 return res;
             }
-            
+            //MR Feb 2019 updated to encode the caption as sometimes they have ampersand 
+            //HttpUtility.HtmlEncode(Caption)
             res= _GetHTML(SageCRMConnection.IsPortal 
                     ? "GetTrans_portal.asp"
-                    : "/CustomPages/SageCRM/component/GetTrans.asp", "&Family=" + Family + "&Caption=" + Caption, "", false, false);
+                    : "/CustomPages/SageCRM/component/GetTrans.asp", "&Family=" + HttpUtility.UrlEncode(Family) + "&Caption=" + HttpUtility.UrlEncode(Caption), "", false, false);
             
             _setInCache("Trans_" + Family + "_" + Caption, res);
 
@@ -297,22 +300,40 @@ namespace SageCRM.AspNet
         {
             if (SageCRMConnection != null)
             {
-                string strresult = _GetHTML("Authenticated.asp", "", "username=" + username + "&password=" + password, false, false);
+                string pwd = "";
+                pwd = portalEncoder(password);
+
+                string strresult = _GetHTML("Authenticated.asp", "", "username=" + username + "&password=" + pwd, false, false);
+                
                 bool bresult = Convert.ToBoolean(strresult);
+             
                 if (bresult)
                 {
+                    //clever fix for £ sign
+                    pwd = portalEncoder2(pwd);
+                    //dev code only
+                   // HttpCookie icookieEWAREID3 = new HttpCookie("Last working password", pwd);
+                    //HttpContext.Current.Response.Cookies.Add(icookieEWAREID3);
+
                     SageCRMConnection.PortalUserName = username;
-                    SageCRMConnection.PortalUserPassword = password;
+                    SageCRMConnection.PortalUserPassword = pwd;
                     if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
                     {
                         SageCRMConnection.PortalUserPassword = Encrypt.EncryptString(SageCRMConnection.PortalUserPassword, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
                     }
-                    HttpCookie icookie = new HttpCookie("EWARESESS", "userid=" + SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
+                    
+                    HttpCookie icookie = new HttpCookie("EWARESESS", "userid=" + SageCRMConnection.PortalUserName + "&password=" + pwd);
                     HttpContext.Current.Response.Cookies.Add(icookie);
                     HttpCookie icookieEWAREID = new HttpCookie("EWAREID", "abc");
                     HttpContext.Current.Response.Cookies.Add(icookieEWAREID);
                     HttpCookie icookieEWARESELOGON = new HttpCookie("EWARESELOGON", SageCRMConnection.PortalUserName);
                     HttpContext.Current.Response.Cookies.Add(icookieEWARESELOGON);
+                }
+                else
+                {
+                   // this code was to determine if there was an encoding issue
+                   // HttpCookie icookieEWAREID2 = new HttpCookie("Last Failed password", strresult+"=="+ pwd);
+                   //HttpContext.Current.Response.Cookies.Add(icookieEWAREID2);
                 }
                 return bresult;
             }
@@ -413,7 +434,7 @@ namespace SageCRM.AspNet
 
         public string GetContextInfo(string Context, string FieldName)
         {
-            return GetContextInfo(Context, FieldName, true);
+            return GetContextInfo(Context, FieldName, false);
         }
         public string GetContextInfo(string Context, string FieldName, bool usecache)
         {
@@ -477,11 +498,20 @@ namespace SageCRM.AspNet
         }
         public virtual string _GetHTML(string vpath, string extraparams, string xmldata, bool CallRenderEvent, string Evalcode)
         {
-            
-           // System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;//sept2016 
-            //oct 2016--with fallback
-          //  System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
+            onlyUseTLS12 = (ConfigurationManager.AppSettings["onlyUseTLS12"] == "Y");
+            if (onlyUseTLS12)
+            {
+                System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            }
+            else
+            {
+                System.Net.ServicePointManager.SecurityProtocol |=
+                    SecurityProtocolType.Ssl3 |
+                    SecurityProtocolType.Tls |
+                    SecurityProtocolType.Tls11 |
+                    SecurityProtocolType.Tls12;
+            }
+
             if (SageCRMConnection == null)
             {
                 return "NOSAGECRMConnection Object(base)";
@@ -491,6 +521,7 @@ namespace SageCRM.AspNet
             string PostData = "";
             // used on each read operation
             byte[] buf = new byte[8192];
+            
             if (HttpContext.Current != null)  
             {
                 
@@ -507,6 +538,7 @@ namespace SageCRM.AspNet
                     {
                         PostData = "Evalcode=" + HttpUtility.UrlEncode(Evalcode);
                     }
+                    bool hasEM = false;
                     System.Collections.IEnumerator en = HttpContext.Current.Request.Form.GetEnumerator();
                     //int ix = 0;
                         while (en.MoveNext())
@@ -522,14 +554,16 @@ namespace SageCRM.AspNet
                             //_vdata=_vdata.Replace("%", "%25");
                             //_vdata = HtmlEncode(_vdata);
                             //_vdata = 
+                            
                             if ((en.Current != null) && (en.Current.ToString() == "em"))//clever...multiple values crashed accelerator screens with multiple values on it
                             {
-
                                 if (_vdata.IndexOf(",") > 0)
                                 {
                                     _vdata = _vdata.Substring(0, 1);
+                                    hasEM = true;
                                 }
                             }
+
                             _vdata = HttpUtility.UrlEncode(_vdata);
                             PostData += en.Current + "=" + _vdata;
                             //PostData += en.Current + "=" + HttpUtility.UrlDecode(HttpContext.Current.Request.Form[(string)en.Current]);
@@ -537,10 +571,25 @@ namespace SageCRM.AspNet
                             //  break;
                             //ix++;
                         }
+                        if (this is SageCRMPortalEntryBlock && ((SageCRMPortalEntryBlock)this).ScreenEditMode)
+                        {
+                            if (!hasEM)
+                            {
+                                PostData += "em=1";
+                            }
+                        }else
+                        if (this is SageCRMPortalEntryBlock && ((SageCRMPortalEntryBlock)this).ScreenSaveMode)
+                        {
+                            if (!hasEM)
+                            {
+                                PostData += "em=2";
+                            }
+                        }
                     //old code...broke for some characters
     //                PostData = HttpUtility.UrlDecode(HttpContext.Current.Request.Form.ToString());
                    // PostData = PostData.Replace(Environment.NewLine, "%0D%0A");//fix for crlf breaking stuff
                 }
+
                  
             }
             if (!DesignMode)
@@ -563,11 +612,27 @@ namespace SageCRM.AspNet
             {
                 PostData = this.customPostData;
             }
+            
             byte[] data = encoding.GetBytes(PostData);
             if (vpath.EndsWith("/selectsql.asp") || vpath.EndsWith("/gettableschema_selectsql.asp") 
                 || vpath.EndsWith("gettableschema_selectsql_portal.asp") || vpath.EndsWith("selectsql_portal.asp")
-                || vpath.EndsWith("deleterecord_portal.asp")) //vpath.EndsWith("/selectsql.asp") || vpath.EndsWith("/gettableschema_selectsql.asp")
+                || vpath.EndsWith("deleterecord_portal.asp")
+                 || vpath.EndsWith("uthenticated.asp")) //vpath.EndsWith("/selectsql.asp") || vpath.EndsWith("/gettableschema_selectsql.asp")
             {
+                if (vpath.EndsWith("uthenticated.asp"))
+                {
+                    //12 June 2020 - clever fix for ampersand and % and + in password on portal
+                    string[] separatingStrings = { "password=" };
+                    string[] portalUserPassword_arr = PostData.Split(separatingStrings, System.StringSplitOptions.None);
+                    if (portalUserPassword_arr.Length > 1)
+                    {
+                        string _pwd = portalUserPassword_arr[1];
+                        _pwd = portalEncoder(_pwd);
+                        PostData = portalUserPassword_arr[0] + "&z=" + portalUserPassword_arr.Length + "&password="+ _pwd;
+                    }
+                    data = encoding.GetBytes(PostData);
+                }
+                else 
                 if (xmldata.Contains("%2B") && !xmldata.Contains("+"))
                 {
                     xmldata = xmldata.Replace("%2B", "+");
@@ -577,6 +642,7 @@ namespace SageCRM.AspNet
                 {
                     data = encoding.GetBytes(xmldata.Replace("%", "%25").Replace(" ", "%20").Replace("+", "%2B")); //.Replace(" ", "%20")
                 }
+
             }
             else
             {
@@ -671,6 +737,7 @@ namespace SageCRM.AspNet
             }
             //portal code
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(requeststring);
+           
             if (ConfigurationManager.AppSettings["DetectProxy"] != "Y")  ///mr 6 apr 18 - added this into try improve speed
             {
                 request.Proxy = null;
@@ -722,8 +789,7 @@ namespace SageCRM.AspNet
                             {
                                 passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
                                 request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + passwordInCookie);
-                       //         request.Headers.Add(HttpRequestHeader.Cookie, "EWARESELOGON=" + SageCRMConnection.PortalUserName);
-                            } 
+                            }
                             else
                             {
                                 request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
@@ -759,6 +825,10 @@ namespace SageCRM.AspNet
                         if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
                         {
                             passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
+                            //debugging lines          
+                            // throw new Exception("Exception Msg: <br />" +
+                                   //       ": " + passwordInCookie + "<br />");
+
                         }
                     }
                     catch (Exception exdecrypt)
@@ -771,6 +841,7 @@ namespace SageCRM.AspNet
                     request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
                 }
             }
+           
             request.Accept = "*/*";
             request.Method = "POST";
 
@@ -910,32 +981,9 @@ namespace SageCRM.AspNet
             return renderHtml;
         }
 
-        //new method for the portal...needed here as its a website so the code is available
-        public void _formatConfig()
-        {
-            //lblLineItems2 is a secret code to make the system check for a license
-            if (ConfigurationManager.AppSettings["lblLineItems2"] != null)
-            {
-                if (ConfigurationManager.AppSettings["CRMTogetherCustomer365License"] != null)
-                {
-                    string sageCRMSuiteLicense = ConfigurationManager.AppSettings["CRMTogetherCustomer365License"].ToString();
-                    string sageCRMSuiteLicenseDecoded = "";
-                    sageCRMSuiteLicenseDecoded = converter.Decrypt(sageCRMSuiteLicense,false,false,false,false,false,true);
-                    if (sageCRMSuiteLicenseDecoded == "LICENSEERROR")
-                    {
-                        throw new Exception("License mismatch:");
-                    }
-                }
-                else
-                {
-                    throw new Exception("License Missing");
-                }
-            }
-        }
-
         private string _getFromCache(string cacheKey)
         {
-            if (ConfigurationManager.AppSettings["disableCache"]=="Y")
+            if (ConfigurationManager.AppSettings["DisableCaching"] =="Y")
             {
                 return "";
             }
@@ -948,10 +996,22 @@ namespace SageCRM.AspNet
 
             return cacheValue;
         }
+
+        public string portalEncoder(string _pwd)
+        {
+            _pwd = HttpUtility.UrlEncode(_pwd, Encoding.UTF8);
+            return _pwd;
+        }
+        public string portalEncoder2(string _pwd)
+        {
+            //this is used in the self-service cookie
+            _pwd = _pwd.Replace("%c2%a3", "%C3%82%C2%A3");// %C3%82%C2%A3  this is based of a test with crms ss portal
+            return _pwd;
+        }
         private void _setInCache(string cacheKey, string cachevalue)
         {
 
-            if (ConfigurationManager.AppSettings["disableCache"] != "Y")
+            if (ConfigurationManager.AppSettings["DisableCaching"] != "Y")
             {
                 if ((cachevalue != null) && (cachevalue.ToLower().IndexOf("<html><head>") == -1))
                 {

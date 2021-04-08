@@ -209,6 +209,24 @@ namespace SageCRM.AspNet
                 ViewState["Top"] = value;
             }
         }
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue("")]
+        [Description("The orderby clause. Ignored if SelectSQL is set.")]
+        public virtual string OrderBy
+        {
+            get
+            {
+                string s = (string)ViewState["OrderBy"];
+                return s ?? "";
+            }
+            set
+            {
+                ViewState["OrderBy"] = value;
+                this.SelectSQL = "";
+                RaiseDataSourceChangedEvent(EventArgs.Empty);
+            }
+        }
 
         [Browsable(true)]
         [Category("Data")]
@@ -224,8 +242,11 @@ namespace SageCRM.AspNet
             set
             {
                 ViewState["SelectSQL"] = value;
-                this.TableName = "";
-                this.WhereClause = "";
+                if (value != "")
+                {
+                    this.TableName = "";
+                    this.WhereClause = "";
+                }
                 RaiseDataSourceChangedEvent(EventArgs.Empty);
             }
         }
@@ -343,7 +364,7 @@ namespace SageCRM.AspNet
         {
             if (null == view)
             {
-                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, this.FWorkflow, this.FWorkflowState);
+                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, this.FWorkflow, this.FWorkflowState, this.OrderBy);
             }
             return view;
         }
@@ -386,6 +407,7 @@ namespace SageCRM.AspNet
 
         public string FWorkflow = "";
         public string FWorkflowState = "";
+        public string FOrderBy = "";
 
         public bool isPortal
         {
@@ -405,7 +427,7 @@ namespace SageCRM.AspNet
 
         public SageCRMDataSourceView(IDataSource owner, string TableName, string WhereClause,
             SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop, bool pNoTLS, bool pCachable,string columnlist,
-            string Workflow, string WorkflowState)
+            string Workflow, string WorkflowState, string OrderBy="")
             : base(owner, DefaultViewName)
         {
             FSageCRMConnection = SageCRMConnectionObj;
@@ -420,6 +442,7 @@ namespace SageCRM.AspNet
             FColumnList = columnlist;
             FWorkflow = Workflow;
             FWorkflowState = WorkflowState;
+            FOrderBy = OrderBy;
         }
 
         // The data source view is named. However, the SageCRMDataSource
@@ -565,6 +588,11 @@ namespace SageCRM.AspNet
                 //MR 4.7.1.1-fix fro caching of invalis session data
                 if ((xmlData == null)||(xmlData == ""))
                 {
+                    //15 May 2020 - clever fix for ampersand appearing in the where clause
+                    if (this.FWhereClause.IndexOf("&")>=0)
+                    {
+                        this.FWhereClause = this.FWhereClause.Replace("&", "%26");
+                    }
                     //get the data xml
                     FSageCRMCustom.customPostData = "columnList=" + this.FColumnList;
                     xmlData = FSageCRMCustom._GetHTML(this.getFindRecord_file(),
@@ -574,7 +602,8 @@ namespace SageCRM.AspNet
                         "&iTop=" + this.FTop +
                         "&iFrom=" + selectArgs.StartRowIndex.ToString() +
                         "&iSort=" + selectArgs.SortExpression.ToString() +
-                        "&grc=" + selectArgs.RetrieveTotalRowCount.ToString()
+                        "&grc=" + selectArgs.RetrieveTotalRowCount.ToString()+
+                        "&OrderBy=" + this.FOrderBy 
                         , "", false);
                     if (FCachable)
                     {
@@ -618,6 +647,8 @@ namespace SageCRM.AspNet
                     System.Environment.NewLine +
                     "grc=" + selectArgs.RetrieveTotalRowCount.ToString() +
                     System.Environment.NewLine +
+                    "OrderBy=" + this.FOrderBy +
+                    System.Environment.NewLine +
                     "Error Msg=" + e.Message +
                     System.Environment.NewLine +
                     "xmlSchema=" + xmlSchema.ToString());
@@ -651,6 +682,8 @@ namespace SageCRM.AspNet
                     "iSort=" + selectArgs.SortExpression.ToString() +
                     System.Environment.NewLine +
                     "grc=" + selectArgs.RetrieveTotalRowCount.ToString() +
+                    System.Environment.NewLine +
+                    "OrderBy=" + this.FOrderBy +
                     System.Environment.NewLine +
                     "Error Msg="+e.Message +
                     System.Environment.NewLine +
@@ -694,7 +727,11 @@ namespace SageCRM.AspNet
                }
                col.AllowDBNull = true;
                col.Caption = fieldCaption;
-               data.Columns.Add(col);
+               if (fieldName != "undefined")
+               {
+                   //seen with external dbs
+                   data.Columns.Add(col);
+               }
             }
             string colName="";
             if (objData.Tables.Count > 0)
@@ -717,6 +754,15 @@ namespace SageCRM.AspNet
                             if (data.Columns[j].DataType == typeof(int))
                             {
                                 //we may do something here later
+                                //okay so when we have a 3rd party system that has an id field thats a string this is a problem
+                                //clever....
+                                int n;
+                                bool isNumeric = int.TryParse(valStr, out n);
+                                if (!isNumeric)
+                                {
+                                    data.Columns[j].DataType = typeof(string);
+                                }
+                                ////
                             }
                             else
                                 if (data.Columns[j].DataType == typeof(DateTime))

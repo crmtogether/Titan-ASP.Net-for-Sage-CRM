@@ -53,6 +53,28 @@ namespace SageCRM.AspNet
                 }
             }
         }
+
+        private bool pr_editMode = false;
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue(false)]
+        [Description("Specifies whether the screen renders in edit mode")]
+        public virtual bool ScreenEditMode
+        {
+            get { return pr_editMode; }
+            set { pr_editMode = value; }
+        }
+
+        private bool pr_saveMode = false;
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue(false)]
+        [Description("Specifies whether the screen renders in edit mode")]
+        public virtual bool ScreenSaveMode
+        {
+            get { return pr_saveMode; }
+            set { pr_saveMode = value; }
+        }
         public override string _GetHTML()
         {
             string filename = "entrygroup_portal.asp";

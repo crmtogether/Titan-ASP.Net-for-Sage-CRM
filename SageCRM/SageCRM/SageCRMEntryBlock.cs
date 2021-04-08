@@ -29,32 +29,8 @@ namespace SageCRM.AspNet
             get { return pr_checkLocks == "Y"; }
             set { pr_checkLocks = value ? "Y" : "N"; }
         }
+       
 
-        /*
-        private string pr_udb = "N";
-        [Browsable(true)]
-        [Category("Data")]
-        [DefaultValue(false)]
-        [Description("Specifies whether the system display buttons by default")]
-        public virtual bool UseDefaultButtons
-        {
-            get
-            {
-                return pr_udb == "Y";
-            }
-            set
-            {
-                if (value)
-                {
-                    pr_udb = "Y";
-                }
-                else
-                {
-                    pr_udb = "N";
-                }
-            }
-        }
-*/
         [Browsable(true)]
         [Category("Data")]
         [DefaultValue("")]

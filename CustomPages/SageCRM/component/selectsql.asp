@@ -7,16 +7,30 @@
 */
 //******************************************************************************
 //try{
+
+function WriteFile(_data)
+{
+var FileOpener = new ActiveXObject("Scripting.FileSystemObject");
+var FilePointer = FileOpener.OpenTextFile("C:\\temp\\sample.txt", 8, true);
+FilePointer.WriteLine(_data);
+FilePointer.Close();
+}
+
 Response.clear();
   var SQL=new String(Request.Form('SelectSQL'));
-  if( SQL.toString() == "undefined")
+  
+  //WriteFile(SQL);
+  if( SQL == "undefined")
   {	
 	SQL=new String(Request.QueryString('SelectSQL'));
   } else {
 	var r1;
     r1 = SQL.replace(/%26/g, "&");
-    SQL=r1;
+   // SQL=r1;
   }
+  //WriteFile(SQL);
+  //Response.Write(SQL);
+  //Response.End();
   
   //how many records to display
   var Top=new Number(Request.QueryString('Top'));
