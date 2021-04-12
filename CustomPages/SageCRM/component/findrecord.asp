@@ -23,6 +23,9 @@ Response.clear();
   
   //only return certain columns.
   var columnList=new String(Request.Form('columnList'));
+  //translate return columns
+  var translate=new String(Request.Form('translate'));  
+  //translate='Y';//REMOVE CODE TO TEST ONLY
     //test line only
   //columnList="comp_companyid,comp_name";
   
@@ -82,7 +85,15 @@ Response.clear();
       var fieldx=new String(eQueryFields.item());
       fieldx=fieldx.toLowerCase();
       fieldarr[fieldarr.length]=fieldx;
-      etype=new String("10");
+	  etype=new String("10");
+	  if (translate=='Y')
+	  {
+		var fieldrecX = eWare.CreateQueryObj("select top 1 colp_colname, colp_entrytype from custom_edits where colp_colname='"+fieldx+"' ORDER BY ColP_ColPropsId");
+		fieldrecX.SelectSQL();
+		if (!fieldrecX.eof){
+			etype=new String(fieldrecX("colp_entrytype"));
+		}
+	  }
       fieldtype[fieldarr.length]=etype.substr(0,2);
       eQueryFields.moveNext();
     }  
@@ -121,7 +132,24 @@ Response.clear();
 				}
 				fieldName=fieldName.replace(/\s/g, '');    
 				if (record.idfield!=fieldarr[i]){
-					result+="<"+fieldName+">"+CustomEscape(fieldval)+"</"+fieldName+">";
+					var _fval=CustomEscape(fieldval);
+					//get translations if set
+					if (fieldtype[i+1]=="21")
+					{
+					  _fval=CRM.GetTrans(fieldName,fieldval);
+					  _fval=CustomEscape(_fval);
+					}else
+					if (fieldtype[i+1]=="53")
+					{
+						//territory
+						var terr_sql="select Terr_Caption from Territories where Terr_TerritoryID='"+fieldval+"'";
+						var terr_sqlrec = eWare.CreateQueryObj(terr_sql);    
+						terr_sqlrec.SelectSQL();
+						if (!terr_sqlrec.eof){
+							 _fval=CustomEscape(terr_sqlrec("Terr_Caption"));
+						}
+					}
+					result+="<"+fieldName+">"+_fval+"</"+fieldName+">";
 				}
 			}catch(errField){
 			  //carry on?
