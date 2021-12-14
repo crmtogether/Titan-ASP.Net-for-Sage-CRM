@@ -9,6 +9,7 @@
 //******************************************************************************
 try{
 Response.clear();
+  var _code="";
   var testMode = false;
   var TableName=new String(Request.QueryString('TableName'));
   var WhereClause=new String(Request.QueryString('WhereClause'));
@@ -75,6 +76,7 @@ frm=frm.replace(regex3, "'");
       if (testMode)
         Response.Write(dataNode.nodeName+"="+dataNode.text+"<br />");
       var ftype=getFieldType(dataNode.nodeName);
+      _code+=".ftype="+ftype+".."+dataNode.nodeName+"="+fixPercentageIssue(dataNode.text);
       if (((ftype=="41")||(ftype=="42")) && (dataNode.text.indexOf(",")>-1))
       {
         var dat_val=dataNode.text;
@@ -82,7 +84,13 @@ frm=frm.replace(regex3, "'");
         eval(evaldt);    
         urec(dataNode.nodeName)=d.getVarDate();
       }else{
-        urec(dataNode.nodeName)=fixPercentageIssue(dataNode.text);
+        if ((dataNode.nodeName=="comm_datetime")&&(dataNode.text.indexOf("Z")==-1))
+		{
+			//clever..
+			urec(dataNode.nodeName)=(new Date()).getVarDate();
+		}else{
+			urec(dataNode.nodeName)=fixPercentageIssue(dataNode.text);
+		}
       }
     }
   }
@@ -91,6 +99,7 @@ frm=frm.replace(regex3, "'");
   {
     urec("comm_channelid")=CRM.GetContextInfo("user","user_primarychannelid");
   }
+  _code+="-save called-";
   if (bNoTLS)
   {
     urec.SaveChangesNoTLS();
@@ -99,7 +108,7 @@ frm=frm.replace(regex3, "'");
   }
   Response.Write(urec.RecordId);//success
 }catch(e){
-  Response.Write('Error:Saving Record: '+TableName+ '  -  Desc: ' + e.description + '  -  ErrorNo: '+e.number + '  -XML: '+Request.Form);//failed
+  Response.Write('Error:Saving Record: '+TableName+ '  -  Desc: ' + e.description + '  -  ErrorNo: '+e.number + '  -XML: '+Request.Form+" code trace:"+_code);//failed
 }
 Response.End;
 //array function to check for the fields that are not actual db field but are
