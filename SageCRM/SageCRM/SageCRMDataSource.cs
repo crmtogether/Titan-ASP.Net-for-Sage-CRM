@@ -285,6 +285,24 @@ namespace SageCRM.AspNet
                 RaiseDataSourceChangedEvent(EventArgs.Empty);
             }
         }
+
+        [Browsable(true)]
+        [Category("Data")]
+        [DefaultValue("")]
+        [Description("Option to translate the data")]
+        public virtual string Translate
+        {
+            get
+            {
+                string s = (string)ViewState["Translate"];
+                return s ?? "";
+            }
+            set
+            {
+                ViewState["Translate"] = value;
+                RaiseDataSourceChangedEvent(EventArgs.Empty);
+            }
+        }
         [Browsable(true)]
         [Category("Data")]
         [DefaultValue("")]
@@ -340,7 +358,7 @@ namespace SageCRM.AspNet
             DataSet newds=new DataSet();
             newds.Tables.Add(s_dsv.data);
             return newds;
-        }
+        }   
         public DataSourceView Open()
         {
             return this.GetView(String.Empty);
@@ -364,7 +382,8 @@ namespace SageCRM.AspNet
         {
             if (null == view)
             {
-                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, this.FWorkflow, this.FWorkflowState, this.OrderBy);
+                view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, 
+                    this.FWorkflow, this.FWorkflowState, this.OrderBy, this.Translate);
             }
             return view;
         }
@@ -394,6 +413,7 @@ namespace SageCRM.AspNet
         protected bool FNoTLS = false;
 
         protected string FColumnList; //comma delimited list of columns to be returned. allows us to use find record to only return some columns
+        protected string FTranslate;
 
         protected string idField = "";
         public DataView dv;//used for the data reader
@@ -427,7 +447,7 @@ namespace SageCRM.AspNet
 
         public SageCRMDataSourceView(IDataSource owner, string TableName, string WhereClause,
             SageCRMConnection SageCRMConnectionObj, string SelectSQL, string iTop, bool pNoTLS, bool pCachable,string columnlist,
-            string Workflow, string WorkflowState, string OrderBy="")
+            string Workflow, string WorkflowState, string OrderBy="", string translate="N")
             : base(owner, DefaultViewName)
         {
             FSageCRMConnection = SageCRMConnectionObj;
@@ -440,6 +460,7 @@ namespace SageCRM.AspNet
             FSageCRMCustom.SageCRMConnection = FSageCRMConnection;
             FCachable = pCachable;
             FColumnList = columnlist;
+            FTranslate = translate;
             FWorkflow = Workflow;
             FWorkflowState = WorkflowState;
             FOrderBy = OrderBy;
@@ -595,6 +616,7 @@ namespace SageCRM.AspNet
                     }
                     //get the data xml
                     FSageCRMCustom.customPostData = "columnList=" + this.FColumnList;
+                    FSageCRMCustom.customPostData += "&translate=" + this.FTranslate;
                     xmlData = FSageCRMCustom._GetHTML(this.getFindRecord_file(),
                         "&TableName=" + this.FTableName +
                         "&WhereClause=" + this.FWhereClause +
