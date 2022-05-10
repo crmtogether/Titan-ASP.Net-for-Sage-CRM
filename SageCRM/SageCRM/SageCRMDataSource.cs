@@ -35,6 +35,7 @@ namespace SageCRM.AspNet
         public IDataReader idr;
 
         public bool Cachable = false;
+        public string Cachekey = "";
 
         protected bool lastUpdateResult=false;
 
@@ -383,8 +384,9 @@ namespace SageCRM.AspNet
             if (null == view)
             {
                 view = new SageCRMDataSourceView(this, this.TableName, this.WhereClause, this.SageCRMConnection, this.SelectSQL, this.Top, this.NoTLS, this.Cachable, this.ColumnList, 
-                    this.FWorkflow, this.FWorkflowState, this.OrderBy, this.Translate);
+                    this.FWorkflow, this.FWorkflowState, this.OrderBy, this.Translate);               
             }
+            view.CacheKey = this.Cachekey;
             return view;
         }
         // The ListSourceHelper class calls GetList, which
@@ -424,10 +426,21 @@ namespace SageCRM.AspNet
         public DataSet objSchema;
 
         public bool FCachable = false;
+        public string CacheKey="";
 
         public string FWorkflow = "";
         public string FWorkflowState = "";
         public string FOrderBy = "";
+
+        public string getCacheKey(string val)
+        {
+            if (CacheKey == "")
+            {
+                val = val.Replace(" ", "_");
+                return val;
+            }
+            return CacheKey;
+        }
 
         public bool isPortal
         {
@@ -551,17 +564,22 @@ namespace SageCRM.AspNet
             string dataSchemaFile = "";
             if (FSelectSQL != "")
             {
-                string _datacachekey = "dataFile_" + this.FSelectSQL;
-                _datacachekey = _datacachekey.Replace(" ", "_");
+                string _datacachekey =  getCacheKey("dataFile_" + this.FSelectSQL);
+               
                //get the schema xml
-                dataFile = this.getSelectSql_file();
+               dataFile = this.getSelectSql_file();
                dataSchemaFile = this.getTableSchema_Selectsqlfile();
-               xmlSchema = _getFromCache("dataSchemaFile_" + this.FSelectSQL);
+               xmlSchema = _getFromCache(_datacachekey + "schema"); 
                //MR 4.7.1.1-fix fro caching of invalis session data
                if ((xmlSchema == null)||(xmlSchema == ""))
                {
                    xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_Selectsqlfile(), "", "SelectSQL=" + this.FSelectSQL, false); //Fixes problem? "", "SelectSQL=" + this.FSelectSQL
-               }
+                   if (FCachable)
+                   {
+                        //set the cache
+                       _setInCache(_datacachekey+"schema", xmlSchema);
+                   }
+                }
                if (FCachable)
                {
                    //check have we it already
@@ -589,18 +607,22 @@ namespace SageCRM.AspNet
             {
                 dataFile = this.getFindRecord_file();
                 dataSchemaFile = this.getTableSchema_file();
-                string _datacachekey = "dataFile_" + this.FTableName + "_" + this.FWhereClause + "_" + this.FColumnList;
-                _datacachekey = _datacachekey.Replace(" ", "_");
+                string _datacachekey = getCacheKey("dataFile_" + this.FTableName + "_" + this.FWhereClause + "_" + this.FColumnList);
+  
                 //get the schema xml
                 //to do turn back on....
-                xmlSchema = _getFromCache("dataSchemaFile_" + this.FTableName+ "_" + this.FColumnList);
+                xmlSchema = _getFromCache(_datacachekey + "schema2");
                 //MR 4.7.1.1-fix fro caching of invalis session data
                 if ((xmlSchema == null) || (xmlSchema == ""))
                 {
                     FSageCRMCustom.customPostData = "columnList=" + this.FColumnList;
                     xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
-                        _setInCache("dataSchemaFile_" + this.FTableName + "_" + this.FColumnList, xmlSchema);
+                    if (FCachable)
+                    {
+                        //set the cache
+                        _setInCache(_datacachekey + "schema2", xmlSchema);
                     }
+                }
                 if (FCachable)
                 {
                     //check have we it already
@@ -935,8 +957,8 @@ namespace SageCRM.AspNet
             if ((xmlSchema == null) || (xmlSchema == ""))
             {
                 xmlSchema = FSageCRMCustom._GetHTML(this.getTableSchema_file(), "&TableName=" + this.FTableName, "", false);
-                    _setInCache("insert_TableName=" + this.FTableName, xmlSchema);
-                }
+                _setInCache("insert_TableName=" + this.FTableName, xmlSchema);
+            }
             //build our StreamReaders
             StringReader xmlStreamSchema = new StringReader(xmlSchema.ToString());
             //the schema dataset
@@ -1128,7 +1150,7 @@ namespace SageCRM.AspNet
         {
             if (ConfigurationManager.AppSettings["DisableCaching"] == "Y")  ///mr 6 apr 18 - added this into try improve speed
             {
-                return "";
+               // return "";
             }
 
             string cacheValue = (string) HttpRuntime.Cache[cacheKey];
