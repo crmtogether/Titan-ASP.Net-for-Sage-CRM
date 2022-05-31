@@ -387,7 +387,9 @@ namespace SageCRM.AspNet
             string res="";
             string uniquesessionid = _getuniqueidforportal();
             string _cachekey = uniquesessionid + "_" + FieldName;
+            /*
             //turned off caching here for now as looks likem PortalUserName is not set
+            26 may 22- removed this as any error is cached too
             if (uniquesessionid != "")
             {
                 res = _getFromCache(_cachekey);
@@ -399,7 +401,7 @@ namespace SageCRM.AspNet
             {
                 return res;
             }
-            }
+            }*/
             res = SageCRMConnection != null 
                 ? _GetHTML("getVisitorInfo.asp", "&FieldName=" + FieldName, "", false, false) 
                 : "No SageCRMConnection set (GetVisitorInfo Method)";
@@ -763,48 +765,40 @@ namespace SageCRM.AspNet
                 //we use the port to check if we are running this from thed designer (ie debug mode)
                 //if (SageCRMConnection.DevelopmentPort == HttpContext.Current.Request.ServerVariables.Get("SERVER_PORT"))
                 //new way to detect if we are debugging
-                if (System.Diagnostics.Debugger.IsAttached)
+                //make sure that we send in the cookies from the original request as 
+                //we are imiatating the original callers credentials
+                if (SageCRMConnection.IsPortal)
                 {
-                    request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" +
-                        SageCRMConnection.PortalUserName + "&password=" + SageCRMConnection.PortalUserPassword);
-                }
-                else
-                {
-                    //make sure that we send in the cookies from the original request as 
-                    //we are imiatating the original callers credentials
-                    if (SageCRMConnection.IsPortal)
+                    if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
+                    {
+                        if ((HttpContext.Current.Request.Cookies["EWARESESS"] != null) && (HttpContext.Current.Request.Cookies["EWARESESS"]["userid"]!=null))
+                        {
+                            SageCRMConnection.PortalUserName = HttpContext.Current.Request.Cookies["EWARESESS"]["userid"].ToString();
+                            SageCRMConnection.PortalUserPassword = HttpContext.Current.Request.Cookies["EWARESESS"]["password"].ToString();
+                        }
+                    }
+                    string passwordInCookie = SageCRMConnection.PortalUserPassword;
+                    try
                     {
                         if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
                         {
-                            if ((HttpContext.Current.Request.Cookies["EWARESESS"] != null) && (HttpContext.Current.Request.Cookies["EWARESESS"]["userid"]!=null))
-                            {
-                                SageCRMConnection.PortalUserName = HttpContext.Current.Request.Cookies["EWARESESS"]["userid"].ToString();
-                                SageCRMConnection.PortalUserPassword = HttpContext.Current.Request.Cookies["EWARESESS"]["password"].ToString();
-                            }
+                            passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
+                            request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + passwordInCookie);
                         }
-                        string passwordInCookie = SageCRMConnection.PortalUserPassword;
-                        try
-                        {
-                            if (ConfigurationManager.AppSettings["EnhancedSecurityPassword"] == "Y")
-                            {
-                                passwordInCookie = Encrypt.DecryptString(passwordInCookie, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
-                                request.Headers.Add(HttpRequestHeader.Cookie, "EWARESESS=userid=" + SageCRMConnection.PortalUserName + "&password=" + passwordInCookie);
-                            }
-                            else
-                            {
-                                request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
-                            }
-               
-                        }
-                        catch (Exception exdecrypt)
+                        else
                         {
                             request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
-                        }                
+                        }
+               
                     }
-                    else
+                    catch (Exception exdecrypt)
                     {
                         request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
-                    }
+                    }                
+                }
+                else
+                {
+                    request.Headers.Add("Cookie", Context.Request.Headers["Cookie"]);
                 }
             }
             else
