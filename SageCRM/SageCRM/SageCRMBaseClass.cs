@@ -406,10 +406,14 @@ namespace SageCRM.AspNet
                 ? _GetHTML("getVisitorInfo.asp", "&FieldName=" + FieldName, "", false, false) 
                 : "No SageCRMConnection set (GetVisitorInfo Method)";
             this.NoPostData = false;
-            if ((uniquesessionid != "") && (res != "No SageCRMConnection set (GetVisitorInfo Method)"))
+
+            if ((uniquesessionid != "") && (res != "No SageCRMConnection set (GetVisitorInfo Method)") && res.IndexOf("Error") == -1)
             {
                 _setInCache(_cachekey, res);
             }
+
+            if (res.IndexOf("Error") > -1) return "";
+
             return res;
         }
 
