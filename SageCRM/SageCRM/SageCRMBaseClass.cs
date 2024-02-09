@@ -8,14 +8,14 @@ using System.Security.Permissions;
 using System.IO;
 using System.Net;
 using System.Configuration;
-using System.Net.NetworkInformation;
+using log4net;
 
 [assembly: TagPrefix("SageCRM.AspNet", "SageCRM")]
 namespace SageCRM.AspNet
 {
     //declaring the event handler delegate
     public delegate void BeforeRenderingEventHandler(object source, ref string HTMLSource);
-
+  
     [AspNetHostingPermission(SecurityAction.Demand,
         Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(SecurityAction.InheritanceDemand,
@@ -23,7 +23,7 @@ namespace SageCRM.AspNet
     public class SageCRMBaseClass : WebControl
     {
         public bool objectMethod = false;//don't throw in trial stuff for an object menthod
-
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(SageCRMBaseClass));
         private string FReleasedServer = "localhost";
 
         protected SageCRMConnection FSageCRMConnection;
@@ -302,9 +302,10 @@ namespace SageCRM.AspNet
             {
                 string pwd = "";
                 pwd = portalEncoder(password);
-
+            
                 string strresult = _GetHTML("Authenticated.asp", "", "username=" + username + "&password=" + pwd, false, false);
-                
+                Logger.Debug(strresult);
+
                 bool bresult = Convert.ToBoolean(strresult);
              
                 if (bresult)
@@ -322,7 +323,7 @@ namespace SageCRM.AspNet
                         SageCRMConnection.PortalUserPassword = Encrypt.EncryptString(SageCRMConnection.PortalUserPassword, ConfigurationManager.AppSettings["EnhancedSecurityPasswordPhrase"].ToString());
                     }
                     
-                    HttpCookie icookie = new HttpCookie("EWARESESS", "userid=" + SageCRMConnection.PortalUserName + "&password=" + pwd);
+                    HttpCookie icookie = new HttpCookie("EWARESESS", "userid=" + SageCRMConnection.PortalUserName + "&password=" + HttpUtility.UrlDecode(SageCRMConnection.PortalUserPassword,Encoding.UTF8));
                     HttpContext.Current.Response.Cookies.Add(icookie);
                     HttpCookie icookieEWAREID = new HttpCookie("EWAREID", "abc");
                     HttpContext.Current.Response.Cookies.Add(icookieEWAREID);
