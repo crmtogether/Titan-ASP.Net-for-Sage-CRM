@@ -9,6 +9,8 @@ using System.IO;
 using System.Net;
 using System.Configuration;
 using log4net;
+using log4net.Config;
+using System.Security.Principal;
 
 [assembly: TagPrefix("SageCRM.AspNet", "SageCRM")]
 namespace SageCRM.AspNet
@@ -41,6 +43,16 @@ namespace SageCRM.AspNet
         public event BeforeRenderingEventHandler BeforeRendering;
 
         public bool onlyUseTLS12 = false;
+
+        public bool IsWindowsAuthentication = false;
+        //constructor
+        public SageCRMBaseClass()
+        {
+            XmlConfigurator.Configure();
+            Logger.Debug("Log for net in SageCRMBaseClass");
+            IsWindowsAuthentication = IsWindowsAuthenticationEnabled();
+            Logger.Debug("IsWindowsAuthenticationEnabled:" + IsWindowsAuthentication);
+        }
 
         [Browsable(false)]
         public virtual string editorURL
@@ -499,12 +511,28 @@ namespace SageCRM.AspNet
             objectMethod = false;
 #endif
         }
+
+
+
+        public bool IsWindowsAuthenticationEnabled()
+        {
+            if (HttpContext.Current != null && HttpContext.Current.User != null)
+            {
+                return HttpContext.Current.User.Identity is WindowsIdentity;
+            }
+            return false;
+        }
+
+
         public virtual string _GetHTML(string vpath, string extraparams, string xmldata, bool CallRenderEvent)
         {
             return _GetHTML(vpath, extraparams, xmldata, CallRenderEvent, "");
         }
         public virtual string _GetHTML(string vpath, string extraparams, string xmldata, bool CallRenderEvent, string Evalcode)
+
         {
+           
+
             onlyUseTLS12 = (ConfigurationManager.AppSettings["onlyUseTLS12"] == "Y");
             if (onlyUseTLS12)
             {
@@ -742,17 +770,35 @@ namespace SageCRM.AspNet
             {
                 ServicePointManager.DefaultConnectionLimit = Convert.ToInt32(ConfigurationManager.AppSettings["DefaultConnectionLimit"].ToString());
             }
+
+
+            Logger.Debug(requeststring);
             //portal code
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(requeststring);
            
+
+
             if (ConfigurationManager.AppSettings["DetectProxy"] != "Y")  ///mr 6 apr 18 - added this into try improve speed
             {
                 request.Proxy = null;
                 //ref: https://en.code-bude.net/2013/01/21/3-things-you-should-know-to-speed-up-httpwebrequest/
             }
+
+
+
+            //Costi 28 May - 
+            if (IsWindowsAuthentication)
+            {
+                request.UseDefaultCredentials = true;
+            }
+
+
             if ((ConfigurationManager.AppSettings["CRMNetworkUser"] != null) &&
                 (ConfigurationManager.AppSettings["CRMNetworkUser"] != ""))
             {
+
+                Logger.Debug("using CRMNetworkUser:" + ConfigurationManager.AppSettings["CRMNetworkUser"]);
+
                 NetworkCredential nc = new NetworkCredential(ConfigurationManager.AppSettings["CRMNetworkUser"],
                     ConfigurationManager.AppSettings["CRMNetworkUserPassword"],
                     ConfigurationManager.AppSettings["CRMNetworkDomain"]);
@@ -765,6 +811,11 @@ namespace SageCRM.AspNet
                 //request.PreAuthenticate = true;//http://geekswithblogs.net/ranganh/archive/2006/02/21/70212.aspx
                 request.Credentials = nc;
             }
+
+
+
+
+
             if (HttpContext.Current != null)
             {
                 //we use the port to check if we are running this from thed designer (ie debug mode)
@@ -861,6 +912,9 @@ namespace SageCRM.AspNet
 
             newStream.Write(data, 0, data.Length);
             newStream.Close();
+
+
+
             //the following lines are useful for debugging purposes
 //            throw new Exception("Exception Msg: <br />" +
   //              "CRM Request URL: " + requeststring + "<br />" +
@@ -871,6 +925,7 @@ namespace SageCRM.AspNet
             try
             {
                 response = (HttpWebResponse)request.GetResponse();
+                Logger.Debug(response.StatusCode);
             }
             catch (Exception e)
             {   
@@ -879,6 +934,11 @@ namespace SageCRM.AspNet
 
                 if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["CRMNetworkUser"]))
                     v_netuser = ConfigurationManager.AppSettings["CRMNetworkUser"];
+
+
+                Logger.Debug(e.Message);
+
+
 
                 throw new Exception("Exception Msg: " + e.Message + "\n" +
                     "Exception Source: " + e.Source + "\n" +
